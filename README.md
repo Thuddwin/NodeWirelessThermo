@@ -14,4 +14,4 @@ This project is made up of 'spare parts' and consists of:
 For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and installed from the Raspberry Pi Foundation website.  The headless version is adequate for this project, but any version will work.
 = [ ] Install Node.js and NPM
 - [ ] GIT should already be installed with the OS.  If not, apt-get that.
-- [ ] From /home/pi git the project: https://github.com/
+- [ ] From /home/pi git the project: https://github.com/Thuddwin/NodeWirelessThermo.git
