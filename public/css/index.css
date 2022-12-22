@@ -11,6 +11,11 @@ body {
   width: 100vw;
 }
 
+.main {
+    background: url('../images/pexels-pixabay-235621.jpg') no-repeat center fixed;
+    background-color: #cccccc;
+    background-size: cover;
+}
 /* include border and padding in element width and height */
 * {
   box-sizing: border-box;
