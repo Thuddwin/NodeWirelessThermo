@@ -8,74 +8,188 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    
     <title>Wireless Thermometer App</title>
   </head>
   <body>
     <div class="jumbotron">
       <h1>Betty's Shed Temperature Monitor</h1>
-      <h3>December 13, 2022</h3>
-      <h3>4:43 PM</h3>
+      <h3 id="titleDate"></h3>
+      <h3 id="titleTime"></h3>
     </div>
     <div class="row" style="height: 250px;">
+        <!-- OUTSIDE -->
         <div class="col">
             <div class="card bg-info">
                 <div class="card-body">
                     <h2 class="card-title">Outside Temp - F</h2>
                     <hr>
+
+                    <!-- OUTSIDE CURRENT -->
                     <div class="row">
-                        <div class="col-4" style="font-size: 14px; font-weight: bold;">
-                            <div class="row justify-content-center w-100">Low: 23.5</div>
-                            <div class="row justify-content-center w-100">Dec 12, 2022</div>
-                            <div class="row justify-content-center w-100">2:37 AM</div>
+                        <div
+                            class="col text-center w-100"
+                            style="font-size: 80px;"
+                            id="outsideCurrentElem">
+                            ---
                         </div>
-                        <div class="col-4" style="font-size: 50px;">30.5</div>
-                        <div class="col-4" style="font-size: 14px; font-weight: bold">
-                            <div class="row justify-content-center w-100">High: 43.5</div>
-                            <div class="row justify-content-center w-100">Dec 11, 2022</div>
-                            <div class="row justify-content-center w-100">4:37 PM</div>
+                    </div>
+
+                    <!-- OUTSIDE LOW -->
+                    <div class="row">
+                        <div class="col-6" style="font-size: 16px; font-weight: bold;">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="outsideLowElem">
+                                Low: ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="outsideLowDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="outsideLowTimeElem">
+                                ---
+                            </div>
+                        </div>
+
+                        <!-- OUTSIDE HIGH -->
+                        <div class="col-6" style="font-size: 16px; font-weight: bold">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="outsideHighElem">
+                                Low: ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="outsideHighDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="outsideHighTimeElem">
+                                ---
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+        <!-- PIPE -->
         <div class="col">
-            <div class="card bg-secondary text-white">
+            <div class="card bg-secondary text-light">
                 <div class="card-body">
                     <h2 class="card-title">Pipe Temp - F</h2>
                     <hr>
+
+                    <!-- PIPE CURRENT -->
                     <div class="row">
-                        <div class="col-4" style="font-size: 14px; font-weight: bold">
-                            <div class="row justify-content-center w-100">Low: 33.5</div>
-                            <div class="row justify-content-center w-100">Dec 12, 2022</div>
-                            <div class="row justify-content-center w-100">2:37 AM</div>
+                        <div
+                            class="col text-center w-100"
+                            style="font-size: 80px;"
+                            id="pipeCurrentElem">
+                            ---
                         </div>
-                        <div class="col-4" style="font-size: 50px;">39.5</div>
-                        <div class="col-4" style="font-size: 14px; font-weight: bold">
-                            <div class="row justify-content-center w-100">High: 42.3</div>
-                            <div class="row justify-content-center w-100">Dec 12, 2022</div>
-                            <div class="row justify-content-center w-100">3:17 AM</div>
+                    </div>
+
+                    <!-- PIPE LOW -->
+                    <div class="row">
+                        <div class="col-6" style="font-size: 16px; font-weight: bold;">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="pipeLowElem">
+                                Low: ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="pipeLowDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="pipeLowTimeElem">
+                                ---
+                            </div>
+                        </div>
+
+                        <!-- PIPE HIGH -->
+                        <div class="col-6" style="font-size: 16px; font-weight: bold">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="pipeHighElem">
+                                Low: ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="pipeHighDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="pipeHighTimeElem">
+                                ---
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- SHED -->
         <div class="col">
             <div class="card bg-warning text-dark">
                 <div class="card-body">
-                    <h2 class="card-title">Inside Shed Temp - F</h2>
+                    <h2 class="card-title">Shed Temp - F</h2>
                     <hr>
+
+                    <!-- SHED CURRENT -->
                     <div class="row">
-                        <div class="col-4" style="font-size: 14px; font-weight: bold">
-                            <div class="row justify-content-center w-100">Low: 34.5</div>
-                            <div class="row justify-content-center w-100">Dec 12, 2022</div>
-                            <div class="row justify-content-center w-100">2:37 AM</div>
+                        <div
+                            class="col text-center w-100"
+                            style="font-size: 80px;"
+                            id="shedCurrentElem">
+                            ---
                         </div>
-                        <div class="col-4" style="font-size: 50px;">42.2</div>
-                        <div class="col-4" style="font-size: 14px; font-weight: bold">
-                            <div class="row justify-content-center w-100">High: 46.7</div>
-                            <div class="row justify-content-center w-100">Dec 12, 2022</div>
-                            <div class="row justify-content-center w-100">3:17 AM</div>
+                    </div>
+
+                    <!-- SHED LOW -->
+                    <div class="row">
+                        <div class="col-6" style="font-size: 16px; font-weight: bold;">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="shedLowElem">
+                                Low: ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="shedLowDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="shedLowTimeElem">
+                                ---
+                            </div>
+                        </div>
+
+                        <!-- SHED HIGH -->
+                        <div class="col-6" style="font-size: 16px; font-weight: bold">
+                            <div 
+                                class="row justify-content-center w-100" 
+                                id="shedHighElem">
+                                ---
+                            </div>
+                            <div 
+                                class="row justify-content-center w-100"
+                                id="shedHighDateElem">
+                                ---
+                            </div>
+                            <div
+                                class="row justify-content-center w-100"
+                                id="shedHighTimeElem">
+                                ---
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -83,6 +197,57 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        socket.on('connect', () => {
+            console.log('CONNEDCTED!');
+        });
+     
+        socket.on('server_sends_message', (dataIn) => {
+            ({ message, data } = dataIn);
+            ({ timeStamp, outside, pipe, shed } = data);
+            console.log(`Message: ${message}`);
+            if(message === 'temp_update') {
+                $('#titleDate').text(timeStamp.date);
+                $('#titleTime').text(timeStamp.time);
+
+                // OUTSIDE //
+                $('#outsideLowElem').text(`Low: ${outside.low.temp}`);
+                $('#outsideLowDateElem').text(`${outside.low.date}`);
+                $('#outsideLowTimeElem').text(`${outside.low.time}`);
+
+                $('#outsideCurrentElem').text(`${outside.current.temp}`);
+
+                $('#outsideHighElem').text(`High: ${outside.high.temp}`);
+                $('#outsideHighDateElem').text(`${outside.high.date}`);
+                $('#outsideHighTimeElem').text(`${outside.high.time}`);
+
+                // PIPE
+                $('#pipeLowElem').text(`Low: ${pipe.low.temp}`);
+                $('#pipeLowDateElem').text(`${pipe.low.date}`);
+                $('#pipeLowTimeElem').text(`${pipe.low.time}`);
+
+                $('#pipeCurrentElem').text(`${pipe.current.temp}`);
+
+                $('#pipeHighElem').text(`High: ${pipe.high.temp}`);
+                $('#pipeHighDateElem').text(`${pipe.high.date}`);
+                $('#pipeHighTimeElem').text(`${pipe.high.time}`);
+            
+                // SHED
+                $('#shedLowElem').text(`Low: ${shed.low.temp}`);
+                $('#shedLowDateElem').text(`${shed.low.date}`);
+                $('#shedLowTimeElem').text(`${shed.low.time}`);
+
+                $('#shedCurrentElem').text(`${shed.current.temp}`);
+
+                $('#shedHighElem').text(`High: ${shed.high.temp}`);
+                $('#shedHighDateElem').text(`${shed.high.date}`);
+                $('#shedHighTimeElem').text(`${shed.high.time}`);
+            }
+        });
+    </script>
   </body>
 </html>
