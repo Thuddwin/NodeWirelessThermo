@@ -4,15 +4,13 @@ const http = require('http').Server(app);
 const path = require('path');
 const notifier = require('./public/js/notifier');
 const sqlite3 = require('sqlite3');
+const db = require('./public/js/shedDB');
 const io = require('socket.io')(http);
+
 const PORT = 4000;
 
 const tempSensors = require('./public/js/sensors');
-
-var db = new sqlite3.Database('./public/database/temps.db');
-
 const tStamp = Date.now();
-db.run('CREATE TABLE IF NOT EXISTS temp_samples (id INTEGER PRIMARY KEY AUTOINCREMENT, sensor_name text not null, temp text, time datetime)');
 
 app.use(express.static('public'));
 app.use(express.static('node_modules'));
@@ -29,9 +27,12 @@ app.get('/', (req,res) => {
   // NOTIFIER STUFF //
   notifier.on('sensors_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    if(message === 'data_update') {
+    if(message === 'temp_update') {
+        // Message for shedDB ADD CURRENT SAMPLE ONLY //
+        notifier.emit('server_sends_message', {'message': 'add_temp_samples', 'data': data})
         io.emit('server_sends_message', {'message': 'temp_update', 'data': data});
-        console.log('Server received data package from Sensors.');
+    } else if (message === 'all_temps') {
+        // Message for  index.html for CURRENT SAMPLE ONLY //
     }
   });
 
