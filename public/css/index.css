@@ -1,39 +1,71 @@
-/* override browser default */
 html,
 body {
-  margin: 0;
-  padding: 0;
+    height: 85vh;
+    width: 100vw;
 }
 
-/* use viewport-relative units to cover page fully */
+html,
 body {
-  height: 100vh;
-  width: 100vw;
+    height: 100%;
 }
 
-.main {
+h1, h4 {
+    margin: 0px !important;
+}
+
+.bg-main {
     background: url('../images/pexels-pixabay-235621.jpg') no-repeat center fixed;
     background-color: #cccccc;
     background-size: cover;
 }
-/* include border and padding in element width and height */
-* {
-  box-sizing: border-box;
+
+.djm-card {
+    display: flex;
+    text-align: center;
+    justify-content: center;
 }
 
-/* full-sized  container that fills up the page */
-body {
-  height: 100%;
-  width: 100%;
-
-  /* example padding, font-size, background, etc */
-  padding: 10px;
-  font-size: 20px;
-  /* background-color: lightskyblue; */
+.card-header {
+    display: flex;
+    padding: 0px !important;
+    margin: 0px !important;
 }
 
-.card {
-    height: 100%;
-    border: 3px solid gray;
-    margin: 0px;
+.temp-value {
+    font-size: 5em;
+    line-height: 1em;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+.h-30 {
+    height: 30vh !important;
+}
+
+.h-70 {
+    height: 70vh !important;
+}
+
+.center-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.wrapper {
+    font-size: 1.1em;
+}
+
+.name,
+.subtitle {
+    font-size: 1.2em;
+    margin-bottom: 0;
+    line-height: 1.3em;
+    text-align: center;
+}
+
+.chartBox {
+    height: 55vh;
+    width: 100%;
 }

@@ -1,7 +1,10 @@
 const notifier = require('./notifier');
+const ds18b20 = require('ds18b20-raspi');
 const myDeviceName = 'sensors';
 
 console.log(`${myDeviceName}: loading....`);
+
+let sensorIDs = [];
 
 notifier.on('connect', () => {
     console.log(`${myDeviceName}: Sensor connected to Server Notifier.`);
@@ -11,11 +14,20 @@ notifier.on('server_sends_message', (dataIn) => {
     // Do some stuff....maybe. //
 });
 
+
+let getAllTemperatures = () => {
+    const allTemps = ds18b20.readAllF(2);
+    console.log('ALLTEMPS: ');
+    if (!allTemps.length) allTemps.push({id: 'ERROR', t: 1.0});
+    console.log(allTemps)
+    return allTemps;
+}
+
 const buildTimeStamp = () => {
     // const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const D = new Date();
-    const day = D.getDay();
+    const day = D.getDate();
     const month = months[D.getMonth()];
     const year = D.getFullYear();
     const fullDate = `${month} ${day}, ${year}`;
@@ -26,16 +38,13 @@ const buildTimeStamp = () => {
 }
 
 const sensorScanPump = () => {
-    console.log(`${myDeviceName}: Starting sensorScanPump()`)
+    console.log(`${myDeviceName}: Starting sensorScanPump()`);
+
     const pumpId = setInterval(() => {
-        // MOCK DATA HERE - To be replaced by incoming data from sensors. //
-        let oTemp = Math.floor(Math.random() * 160.0 ); // Outside Temp //
-        let pTemp = Math.floor(Math.random() * 160.0 ); // Pipe Temp //
-        let sTemp = Math.floor(Math.random() * 160.0 ); // Inside Shed Temp //
-        let outsideTemp = oTemp.toFixed(1);
-        let pipeTemp = pTemp.toFixed(1);
-        let shedTemp = sTemp.toFixed(1);
-        ////////////////////////////////////////////////////////////////////
+        let allTemps2 = getAllTemperatures();
+        let outsideTemp =   allTemps2[0].t; // REAL TEMP //
+        let pipeTemp =      allTemps2[1].t; // REAL TEMP //
+        let shedTemp =      allTemps2[2].t; // REAL TEMP //
 
         const currentTimeStamp = buildTimeStamp();
 

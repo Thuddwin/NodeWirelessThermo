@@ -13,6 +13,7 @@
     "body-parser": "^1.20.1",
     "chart.js": "^4.1.1",
     "dotenv": "^16.0.3",
+    "ds18b20-raspi": "^0.3.6",
     "express": "^4.18.2",
     "jquery": "^3.6.3",
     "nodemon": "^2.0.20",
