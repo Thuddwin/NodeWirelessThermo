@@ -5,6 +5,8 @@ const myDeviceName = 'sensors';
 console.log(`${myDeviceName}: loading....`);
 
 let sensorIDs = [];
+const durationSeconds = 30;
+const pumpDuration = durationSeconds * 1000;
 
 notifier.on('connect', () => {
     console.log(`${myDeviceName}: Sensor connected to Server Notifier.`);
@@ -56,7 +58,7 @@ const sensorScanPump = () => {
         }
         console.log(`${myDeviceName}: Sending data...`);
         notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
-    }, 5000);
+    }, pumpDuration);
 }
 
 sensorScanPump();
