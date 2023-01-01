@@ -29,7 +29,7 @@ app.get('/', (req,res) => {
         if (message === 'my_id') {
             if (data === 'index') {
                 notifier.emit('server_sends_message', {'message': 'run_query', 'data': 'NO DATA'});
-                notifier.emit('server_sends_message', {'message': 'start_pump', 'data': 'NO DATA'})
+                notifier.emit('server_sends_message', {'message': 'hit_pump_once', 'data': 'NO DATA'})
             }
         }
       })

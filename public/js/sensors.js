@@ -14,9 +14,8 @@ notifier.on('connect', () => {
 
 notifier.on('server_sends_message', (dataIn) => {
     ({message, data} = dataIn)
-    if (message === 'start_pump') {
+    if (message === 'hit_pump_once') {
         pumpEngine();
-        sensorScanPump();
     }
 });
 
@@ -66,3 +65,5 @@ const sensorScanPump = () => {
         pumpEngine();
     }, pumpDuration);
 }
+
+sensorScanPump();
