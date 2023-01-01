@@ -1,4 +1,4 @@
-const myDeviceName = 'index2.js';
+const myDeviceName = 'index';
 const socket = io();
 
 socket.on('connect', () => {
@@ -7,7 +7,7 @@ socket.on('connect', () => {
 
 socket.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    console.log(`Message: ${message}`);
+    console.log(`${myDeviceName}: server_sends_message: ${message}`);
 
     // Current temps only. //
     if(message === 'temp_update') {
@@ -34,6 +34,9 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.data.datasets[2].data = shed;
         chrt.data.labels = xAxis;
         chrt.update();
+    } else if (message === 'send_id') {
+        console.log(`${myDeviceName}: Responding to server...sending my id.`)
+        socket.emit('index_sends_message', {'message': 'my_id', 'data': myDeviceName});
     }
 });
 
@@ -51,6 +54,7 @@ const buildTimeAxis = (timeAxisIn) => {
             timeArray.push(tObj.time);
         }
     });
+
     console.log(`${myDeviceName}: buildTimeAxis(): return:`);
     console.log(timeArray);
     

@@ -13,7 +13,11 @@ notifier.on('connect', () => {
 });
 
 notifier.on('server_sends_message', (dataIn) => {
-    // Do some stuff....maybe. //
+    ({message, data} = dataIn)
+    if (message === 'start_pump') {
+        pumpEngine();
+        sensorScanPump();
+    }
 });
 
 
@@ -26,7 +30,6 @@ let getAllTemperatures = () => {
 }
 
 const buildTimeStamp = () => {
-    // const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const D = new Date();
     const day = D.getDate();
@@ -39,27 +42,27 @@ const buildTimeStamp = () => {
     return {'date': fullDate, 'time': currentTime};
 }
 
-const sensorScanPump = () => {
-    console.log(`${myDeviceName}: Starting sensorScanPump()`);
+const pumpEngine = () => {
+    let allTemps2 = getAllTemperatures();
+    let outsideTemp =   allTemps2[0].t; // REAL TEMP //
+    let pipeTemp =      allTemps2[1].t; // REAL TEMP //
+    let shedTemp =      allTemps2[2].t; // REAL TEMP //
 
-    const pumpId = setInterval(() => {
-        let allTemps2 = getAllTemperatures();
-        let outsideTemp =   allTemps2[0].t; // REAL TEMP //
-        let pipeTemp =      allTemps2[1].t; // REAL TEMP //
-        let shedTemp =      allTemps2[2].t; // REAL TEMP //
+    const currentTimeStamp = buildTimeStamp();
 
-        const currentTimeStamp = buildTimeStamp();
-
-        const tempPackage = {
-            'time_stamp': {'date_obj': currentTimeStamp},
-            'outside': {'name': 'outside', 'temp': outsideTemp},
-            'pipe': {'name': 'pipe', 'temp': pipeTemp},
-            'shed': {'name': 'shed', 'temp': shedTemp},
-        }
-        console.log(`${myDeviceName}: Sending data...`);
-        notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
-    }, pumpDuration);
+    const tempPackage = {
+        'time_stamp': {'date_obj': currentTimeStamp},
+        'outside': {'name': 'outside', 'temp': outsideTemp},
+        'pipe': {'name': 'pipe', 'temp': pipeTemp},
+        'shed': {'name': 'shed', 'temp': shedTemp},
+    }
+    console.log(`${myDeviceName}: Sending data...`);
+    notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
 }
 
-sensorScanPump();
-
+const sensorScanPump = () => {
+    console.log(`${myDeviceName}: Starting sensorScanPump()`);
+    const pumpId = setInterval(() => {
+        pumpEngine();
+    }, pumpDuration);
+}

@@ -33,7 +33,7 @@ const insertData = (dataIn) => {
     insertIntoTableCmd.run(outside.temp, pipe.temp, shed.temp, date_obj.date, date_obj.time);
     runQuery().then((queryResult) => {
         notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
-    })
+    });
 };
 
 const runQuery = async () => {
@@ -69,6 +69,10 @@ notifier.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
     if( message == 'add_temp_samples') {
         insertData(data);
+    } else if (message === 'run_query') {
+        runQuery().then((queryResult) => {
+            notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
+        });
     }
 })
 

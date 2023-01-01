@@ -10,6 +10,7 @@ const io = require('socket.io')(http);
 const PORT = 4000;
 const myDeviceName = 'app.js'
 const tempSensors = require('./public/js/sensors');
+const { info } = require('console');
 const tStamp = Date.now();
 
 app.use(express.static('public'));
@@ -20,7 +21,18 @@ app.get('/', (req,res) => {
 
   // SOCKET STUFF //
   io.on('connect', (socket) => {
-    socket.emit('server_sends_message', {'message': 'olt', 'data':'34.5'});
+    socket.emit('server_sends_message', {'message': 'send_id', 'data':'NO DATA'});
+    
+    socket.on('index_sends_message', (dataIn) => {
+        ({message, data} = dataIn)
+        console.log(`${myDeviceName}: index_sends_message: ${message}`);
+        if (message === 'my_id') {
+            if (data === 'index') {
+                notifier.emit('server_sends_message', {'message': 'run_query', 'data': 'NO DATA'});
+                notifier.emit('server_sends_message', {'message': 'start_pump', 'data': 'NO DATA'})
+            }
+        }
+      })
     });
 
   // NOTIFIER STUFF //
