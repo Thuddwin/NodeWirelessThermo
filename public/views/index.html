@@ -20,6 +20,61 @@
 
 </head>
 <body>
+<!-- HIGH/LO TEMPS MODAL HERE... -->
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Highest and Lowest Temps Based on Pipe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-5 label-col">
+                    <div class="row"><div class="col  placeholder bg-light"></div></div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-3 border p-0">Low</div>
+                                <div class="col border text-center time-stamps p-0" id="loDate">----</div>
+                                <div class="col border text-center time-stamps p-0" id="loTime">----</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-3 border p-0 pl-1">High</div>
+                                <div class="col border text-center time-stamps p-0" id="hiDate">----</div>
+                                <div class="col border text-center time-stamps p-0" id="hiTime">----</div>
+                            </div></div></div>
+                </div>
+                <div class="col outside-col bg-info text-center">
+                    <div class="row"><div class="col">Outside</div></div>
+                    <div class="row"><div class="col" id="outsideLo">----</div></div>
+                    <div class="row"><div class="col" id="outsideHi">----</div></div>
+                </div>
+                <div class="col pipe-col bg-secondary text-center">
+                    <div class="row"><div class="col">Pipe</div></div>
+                    <div class="row"><div class="col" id="pipeLo">----</div></div>
+                    <div class="row"><div class="col" id="pipeHi">----</div></div>
+                </div>
+                <div class="col shed-col bg-warning text-center">
+                    <div class="row"><div class="col">Shed</div></div>
+                    <div class="row"><div class="col" id="shedLo">----</div></div>
+                    <div class="row"><div class="col" id="shedHi">----</div></div>
+                </div>
+            </div> 
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
     <div class="container-fluid border bg-main">
         <div class="row">
             <div class="col border">
@@ -31,13 +86,22 @@
                             </div>
                             <div class="col"></div>
                             <div class="col h-100 d-flex align-items-center flex-column justify-content-center">
-                                <h4 class="name">Dec 21, 2022</h4>
-                                <h4 class="subtitle">12:04:22 PM</h4>
+                                <h4 class="name" id="titleDate">----</h4>
+                                <h4 class="subtitle" id="titleTime">----</h4>
+                            </div>
+                            <div 
+                                class="col d-flex align-items-center justify-content-center">
+                                <h4 class="samples" id="titleSample">Total Samples:</h4>
                             </div>
                             <div class="col">
                                 <div class="row h-100">
                                     <div class="col align-items-center justify-content-center d-flex">
-                                        <button type="button" class="btn btn-primary btn-sm">Show Hi/Lo</button>
+                                        <button
+                                            id="showButton"
+                                            type="button" 
+                                            class="btn btn-primary btn-sm">
+                                            Show Hi/Lo
+                                          </button>
                                     </div>
                                 </div>
                             </div>

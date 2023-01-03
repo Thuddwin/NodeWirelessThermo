@@ -43,6 +43,7 @@ const runQuery = async () => {
     let ts = [];
 
     let temps100 = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${getLimit}) ORDER BY id ASC;`).all();
+    let sampleCount = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all();
     const tempsLen = temps100.length;
     for (let i = 0; i < tempsLen; i++ ) {
         o.push(temps100[i].outside_temp);
@@ -55,10 +56,25 @@ const runQuery = async () => {
         'outside': o,
         'pipe': p,
         'shed': s,
-        'time_stamp': ts
+        'time_stamp': ts,
+        'sample_count': sampleCount[0]
     };
 
+    console.log(allTemps);
     return allTemps;
+}
+
+const getMinMaxPipeTemps = async () => {
+    let minTemps = shedDB.prepare(`SELECT min(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
+    let maxTemps = shedDB.prepare(`SELECT max(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
+console.log(`${myDeviceName}: getMinMaxPipeTemps() RESULT:`);
+console.log(minTemps);
+    let minMaxTemps = {
+        'min': minTemps[0],
+        'max': maxTemps[0]
+    };
+
+    return minMaxTemps;
 }
 
 const initDB = async () => {
@@ -73,6 +89,12 @@ notifier.on('server_sends_message', (dataIn) => {
         runQuery().then((queryResult) => {
             notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
         });
+    } else if (message === 'get_min_max') {
+        getMinMaxPipeTemps().then((queryResult) => {
+            console.log(`${myDeviceName}: getMinMaxPipeTemps(): RESULT: `);
+            console.log(queryResult);
+            notifier.emit('shedDB_sends_message', {'message': 'min_max_ready', 'data': queryResult});
+        })
     }
 })
 

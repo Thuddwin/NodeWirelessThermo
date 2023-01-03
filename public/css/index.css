@@ -19,16 +19,12 @@ h1, h4 {
     background-size: cover;
 }
 
-.djm-card {
+.time-stamps {
     display: flex;
-    text-align: center;
+    align-items: center;
     justify-content: center;
-}
-
-.card-header {
-    display: flex;
-    padding: 0px !important;
-    margin: 0px !important;
+    font-size: 0.74em!important;
+    font-weight: bold;
 }
 
 .temp-value {
@@ -38,27 +34,19 @@ h1, h4 {
     padding: 0px !important;
 }
 
-.h-30 {
-    height: 30vh !important;
-}
-
-.h-70 {
-    height: 70vh !important;
-}
-
 .center-title {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-
 .wrapper {
     font-size: 1.1em;
 }
 
 .name,
-.subtitle {
+.subtitle,
+.samples {
     font-size: 1.2em;
     margin-bottom: 0;
     line-height: 1.3em;
