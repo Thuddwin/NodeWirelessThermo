@@ -22,9 +22,7 @@ notifier.on('server_sends_message', (dataIn) => {
 
 let getAllTemperatures = () => {
     const allTemps = ds18b20.readAllF(2);
-    console.log('ALLTEMPS: ');
     if (!allTemps.length) allTemps.push({id: 'ERROR', t: 1.0});
-    console.log(allTemps)
     return allTemps;
 }
 
@@ -37,7 +35,6 @@ const buildTimeStamp = () => {
     const fullDate = `${month} ${day}, ${year}`;
     const currentTime = new Date().toLocaleTimeString();
 
-    console.log(`${myDeviceName}: COMPUTED TIMESTAMP: ${fullDate} - ${currentTime}`);
     return {'date': fullDate, 'time': currentTime};
 }
 
@@ -55,7 +52,7 @@ const pumpEngine = () => {
         'pipe': {'name': 'pipe', 'temp': pipeTemp},
         'shed': {'name': 'shed', 'temp': shedTemp},
     }
-    console.log(`${myDeviceName}: Sending data...`);
+
     notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
 }
 

@@ -12,8 +12,6 @@ const createTables = () => {
     // id = key, sensor_name = OUTSIDE, PIPE, SHED, 
     // temp = temperature at sensor_name,
     // time = date/time of temp taken at sensor_name
-    console.log(`${myDeviceName}: createTables()...`);
-
     shedDB.exec(`
         CREATE TABLE IF NOT EXISTS temp_samples (\
             id INTEGER PRIMARY KEY AUTOINCREMENT, \
@@ -60,15 +58,12 @@ const runQuery = async () => {
         'sample_count': sampleCount[0]
     };
 
-    console.log(allTemps);
     return allTemps;
 }
 
 const getMinMaxPipeTemps = async () => {
     let minTemps = shedDB.prepare(`SELECT min(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
     let maxTemps = shedDB.prepare(`SELECT max(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
-console.log(`${myDeviceName}: getMinMaxPipeTemps() RESULT:`);
-console.log(minTemps);
     let minMaxTemps = {
         'min': minTemps[0],
         'max': maxTemps[0]
@@ -91,8 +86,6 @@ notifier.on('server_sends_message', (dataIn) => {
         });
     } else if (message === 'get_min_max') {
         getMinMaxPipeTemps().then((queryResult) => {
-            console.log(`${myDeviceName}: getMinMaxPipeTemps(): RESULT: `);
-            console.log(queryResult);
             notifier.emit('shedDB_sends_message', {'message': 'min_max_ready', 'data': queryResult});
         })
     }

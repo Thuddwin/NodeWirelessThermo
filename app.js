@@ -25,7 +25,6 @@ app.get('/', (req,res) => {
     
     socket.on('index_sends_message', (dataIn) => {
         ({message, data} = dataIn)
-        console.log(`${myDeviceName}: index_sends_message: ${message}`);
         if (message === 'my_id') {
             if (data === 'index') {
                 notifier.emit('server_sends_message', {'message': 'run_query', 'data': 'NO DATA'});
@@ -52,11 +51,9 @@ app.get('/', (req,res) => {
   notifier.on('shedDB_sends_message', (dataIn) => {
     ({ message, data } = dataIn)
     if(message === 'temp_samples_ready') {
-        console.log(`${myDeviceName}: SHEDDB sends the LAST 100...`);
         // Bounce the message and data.  Target recient(s): index.html //
         io.emit('server_sends_message', {'message': 'temp_samples_ready', 'data': data});
     } else if (message === 'min_max_ready') {
-        console.log(`${myDeviceName}: SHEDDB sends min_max data...`);
         // Bounce the message and data.  Target recient(s): index.html //
         io.emit('server_sends_message', {'message': 'min_max_temps_ready', 'data': data})
     }

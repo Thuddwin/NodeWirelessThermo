@@ -7,8 +7,6 @@ socket.on('connect', () => {
 
 socket.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    
-    console.log(`${myDeviceName}: server_sends_message: ${message}`);
     // Current temps only. //
     if(message === 'temp_update') {
         ({ time_stamp, outside, pipe, shed } = data);
@@ -23,8 +21,6 @@ socket.on('server_sends_message', (dataIn) => {
         $('#shedCurrentElem').text(`${shed.temp}`);
     } else if (message === 'temp_samples_ready') {
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
-        console.log(sample_count);
-
         $('#titleSample').text(`Total Samples: ${sample_count.sample_count}`);
         // Data comes in as: {[outside], [pipe], [shed], [{time_stamp:date, time}]},
         // so will need to massage time_stamp before stuffing it into the graph.
@@ -38,8 +34,6 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.update();
     } else if (message === 'min_max_temps_ready') {
         ({min, max} = data)
-        console.log(min);
-        console.log(max)
         $('#loDate').text(min.date_stamp);
         $('#loTime').text(min.time_stamp);
         $('#hiDate').text(max.date_stamp);
@@ -59,7 +53,6 @@ socket.on('server_sends_message', (dataIn) => {
         myModal.show();
     
     } else if (message === 'send_id') {
-        console.log(`${myDeviceName}: Responding to server...sending my id.`)
         socket.emit('index_sends_message', {'message': 'my_id', 'data': myDeviceName});
     }
 });
@@ -70,7 +63,6 @@ $('#showButton').on('click', () => {
 
 const buildTimeAxis = (timeAxisIn) => {
     let timeArray = [];
-    console.log(`${myDeviceName}: buildTimeAxis()...`)
     let lastDate = '';
     timeAxisIn.forEach(tObj => {
         
