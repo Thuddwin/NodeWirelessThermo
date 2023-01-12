@@ -11,21 +11,24 @@
             data: [],
             borderWidth: 2,
             backgroundColor: '#0dcaf0',
-            borderColor: '#0dcaf0'
+            borderColor: '#0dcaf0',
+            tension: 0.4
         },
         {
             label: 'Pipe',
             data: [],
             borderWidth: 2,
             backgroundColor: '#f8f9fa',
-            borderColor: '#f8f9fa'
+            borderColor: '#f8f9fa',
+            tension: 0.4
         },
         {
             label: 'Shed',
             data: [],
             borderWidth: 2,
             backgroundColor: '#ffc107',
-            borderColor: '#ffc107'
+            borderColor: '#ffc107',
+            tension: 0.4
         },
     ]
     },

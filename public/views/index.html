@@ -84,7 +84,16 @@
                             <div class="col-6 center-title">
                                 <h1>Betty's Shed Temperature Monitor</h1>
                             </div>
-                            <div class="col"></div>
+                            <div class="col align-items-center d-flex">
+                                <button class="btn btn-danger rounded btn-sm" id="samplingIndicator">
+                                    Sampling...
+                                </button>
+                            </div>
+                            <div class="col align-items-center d-flex">
+                                <button class="btn btn-primary rounded btn-sm" id="updatingIndicator">
+                                    Updating...
+                                </button>
+                            </div>
                             <div class="col h-100 d-flex align-items-center flex-column justify-content-center">
                                 <h4 class="name" id="titleDate">----</h4>
                                 <h4 class="subtitle" id="titleTime">----</h4>
@@ -110,8 +119,8 @@
                         <div class="row" style="height: 20vh;">
                             <div class="col border bg-info bg-opacity-75">
                                 <div class="row border h-25">
-                                    <div class="col djm-card">
-                                        <h4 class="card-header">OUTSIDE TEMP (F)</h4>
+                                    <div class="col djm-card d-flex align-items-center">
+                                        <h4 class="card-header ">OUTSIDE TEMP (F)</h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -121,8 +130,8 @@
                                 </div>
                             </div>
                             <div class="col border bg-light bg-opacity-75">
-                                <div class="row border h-25">
-                                    <div class="col djm-card">
+                                <div class="row border border-dark h-25">
+                                    <div class="col djm-card d-flex align-items-center">
                                         <h4 class="card-header">PIPE TEMP (F)</h4>
                                     </div>
                                 </div>
@@ -134,7 +143,7 @@
                             </div>
                             <div class="col border bg-warning bg-opacity-75">
                                 <div class="row border h-25">
-                                    <div class="col djm-card">
+                                    <div class="col djm-card d-flex align-items-center">
                                         <h4 class="card-header">SHED TEMP (F)</h4>
                                     </div>
                                 </div>

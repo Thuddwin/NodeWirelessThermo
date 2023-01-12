@@ -44,6 +44,14 @@ app.get('/', (req,res) => {
         // Message for shedDB ADD CURRENT SAMPLE ONLY //
         notifier.emit('server_sends_message', {'message': 'add_temp_samples', 'data': data})
         io.emit('server_sends_message', {'message': 'temp_update', 'data': data});
+    } else if (message === 'sampling_start') {
+        console.log(`${myDeviceName}:on.sampling start...`);
+        io.emit('server_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
+    } else if (message === 'sampling_stop') {
+        console.log(`${myDeviceName}:on.sampling STOP...`);
+        io.emit('server_sends_message', {'message': 'sampling_stop', 'data': 'NO DATA'});
+    } else if (message === 'get_last_record') {
+        notifier.emit('server_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
     }
   });
 
@@ -56,6 +64,8 @@ app.get('/', (req,res) => {
     } else if (message === 'min_max_ready') {
         // Bounce the message and data.  Target recient(s): index.html //
         io.emit('server_sends_message', {'message': 'min_max_temps_ready', 'data': data})
+    } else if (message === 'last_record_ready') {
+        notifier.emit('server_sends_message', {'message': 'last_record_ready', 'data': data});
     }
   });
 

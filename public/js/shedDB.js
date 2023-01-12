@@ -27,6 +27,15 @@ const createTables = () => {
 const insertData = (dataIn) => {
     ({ time_stamp, outside, pipe, shed } = dataIn);
     ({ date_obj } = time_stamp);
+    if ( !(outside && pipe && shed) ) {
+        console.log(`${myDeviceName}: insertDate(): ERROR: NULL or UNDEFINED data attempted insert into temp_samples. Ignoring.`);
+        console.log(`${myDeviceName}: >>>> outside: ${outside.temp}`);
+        console.log(`${myDeviceName}: >>>> pipe: ${pipe.temp}`);
+        console.log(`${myDeviceName}: >>>> shed: ${shed.temp}`);
+        
+        return;
+    }
+
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO temp_samples (outside_temp, pipe_temp, shed_temp, date_stamp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
     insertIntoTableCmd.run(outside.temp, pipe.temp, shed.temp, date_obj.date, date_obj.time);
     runQuery().then((queryResult) => {
@@ -61,6 +70,12 @@ const runQuery = async () => {
     return allTemps;
 }
 
+const getLastRecord = async () => {
+    let lastRecord = shedDB.prepare('select * from temp_samples order by id desc limit 1;').all();
+
+    return lastRecord;
+}
+
 const getMinMaxPipeTemps = async () => {
     let minTemps = shedDB.prepare(`SELECT min(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
     let maxTemps = shedDB.prepare(`SELECT max(pipe_temp) AS pipe_temp, outside_temp, shed_temp, date_stamp, time_stamp from temp_samples;`).all();
@@ -88,6 +103,10 @@ notifier.on('server_sends_message', (dataIn) => {
         getMinMaxPipeTemps().then((queryResult) => {
             notifier.emit('shedDB_sends_message', {'message': 'min_max_ready', 'data': queryResult});
         })
+    } else if (message === 'get_last_record') {
+        getLastRecord().then((lastRecord) => {
+            notifier.emit('shedDB_sends_message', {'message': 'last_record_ready', 'data': lastRecord[0]});
+        });
     }
 })
 
