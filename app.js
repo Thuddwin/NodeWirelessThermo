@@ -47,9 +47,7 @@ app.get('/', (req,res) => {
     } else if (message === 'sampling_start') {
         console.log(`${myDeviceName}:on.sampling start...`);
         io.emit('server_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
-    } else if (message === 'sampling_stop') {
-        console.log(`${myDeviceName}:on.sampling STOP...`);
-        io.emit('server_sends_message', {'message': 'sampling_stop', 'data': 'NO DATA'});
+    
     } else if (message === 'get_last_record') {
         notifier.emit('server_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
     }

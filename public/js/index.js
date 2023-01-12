@@ -1,6 +1,9 @@
 const myDeviceName = 'index';
 const socket = io();
 
+const SAMPLE_INDICATOR ='#samplingIndicator';
+const UPDATE_INDICATOR = '#updatingIndicator';
+
 socket.on('connect', () => {
     console.log('CONNEDCTED!');
 });
@@ -9,6 +12,7 @@ socket.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
     // Current temps only. //
     if(message === 'temp_update') {
+        flashIndicator(UPDATE_INDICATOR);
         ({ time_stamp, outside, pipe, shed } = data);
         ({ date_obj } = time_stamp);
         $('#titleDate').text(date_obj.date);
@@ -21,7 +25,7 @@ socket.on('server_sends_message', (dataIn) => {
         $('#shedCurrentElem').text(`${shed.temp}`);
     } else if (message === 'temp_samples_ready') {
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
-        blinkText('#updatingIndicator')
+        flashIndicator(UPDATE_INDICATOR)
         $('#titleSample').text(`Total Samples: ${sample_count.sample_count}`);
         // Data comes in as: {[outside], [pipe], [shed], [{time_stamp:date, time}]},
         // so will need to massage time_stamp before stuffing it into the graph.
@@ -56,7 +60,7 @@ socket.on('server_sends_message', (dataIn) => {
     } else if (message === 'send_id') {
         socket.emit('index_sends_message', {'message': 'my_id', 'data': myDeviceName});
     } else if (message === 'sampling_start') {
-        blinkText('#samplingIndicator');
+        flashIndicator(SAMPLE_INDICATOR);
     }
 });
 
@@ -64,7 +68,7 @@ $('#showButton').on('click', () => {
     socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
 })
 
-const blinkText = (elementIdStringIn) => {
+const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);
     $(elementIdStringIn).fadeOut(1500);
 }

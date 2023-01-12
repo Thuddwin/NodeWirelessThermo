@@ -64,6 +64,8 @@ const pumpEngineOnce = () => {
         'shed': {'name': 'shed', 'temp': shedTemp},
     }
 
+    console.log(`${myDeviceName}: pumpEngineOnce(): data:`);
+    console.log(tempPackage)
     notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
 }
 
