@@ -21,7 +21,7 @@
 </head>
 <body>
 <!-- HIGH/LO TEMPS MODAL HERE... -->
-  <!-- Modal -->
+  <!-- Modals -->
   <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -51,17 +51,17 @@
                             </div></div></div>
                 </div>
                 <div class="col outside-col bg-info text-center">
-                    <div class="row"><div class="col">Outside</div></div>
+                    <div class="row"><div class="col">By Door</div></div>
                     <div class="row"><div class="col" id="outsideLo">----</div></div>
                     <div class="row"><div class="col" id="outsideHi">----</div></div>
                 </div>
                 <div class="col pipe-col text-center" style="background-color: #eb3471">
-                    <div class="row"><div class="col">Pipe</div></div>
+                    <div class="row"><div class="col">Outside</div></div>
                     <div class="row"><div class="col" id="pipeLo">----</div></div>
                     <div class="row"><div class="col" id="pipeHi">----</div></div>
                 </div>
                 <div class="col shed-col bg-warning text-center">
-                    <div class="row"><div class="col">Shed</div></div>
+                    <div class="row"><div class="col">Inside</div></div>
                     <div class="row"><div class="col" id="shedLo">----</div></div>
                     <div class="row"><div class="col" id="shedHi">----</div></div>
                 </div>
@@ -74,6 +74,35 @@
     </div>
   </div>
 
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Sensor Malfunction</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col label-col">
+                    <div class="row">
+                        <div class="col text-center">
+                            <h4 id="errorMessage"></h4>
+                            <h5>Call tech support.</h5>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  
 
     <div class="container-fluid border bg-main">
         <div class="row">
@@ -81,20 +110,20 @@
                 <div class="row" >
                     <div class="col">
                         <div class="row bg-light opacity-75" >
-                            <div class="col-6 center-title">
-                                <h1>Betty's Shed Temperature Monitor</h1>
+                            <div class="col-5 border border-dark center-title">
+                                <h1>Betty's Thermo Monitor</h1>
                             </div>
-                            <div class="col align-items-center d-flex">
-                                <button class="btn btn-danger rounded btn-sm" id="samplingIndicator">
+                            <div class="col-1 align-items-center d-flex border border-dark">
+                                <button class="btn btn-success rounded btn-sm" id="samplingIndicator">
                                     Sampling...
                                 </button>
                             </div>
-                            <div class="col align-items-center d-flex">
+                            <div class="col-1 align-items-center d-flex border border-dark">
                                 <button class="btn btn-primary rounded btn-sm" id="updatingIndicator">
                                     Updating...
                                 </button>
                             </div>
-                            <div class="col h-100 d-flex align-items-center flex-column justify-content-center">
+                            <div class="col h-100 d-flex align-items-center flex-column justify-content-center border border-dark">
                                 <h4 class="name" id="titleDate">----</h4>
                                 <h4 class="subtitle" id="titleTime">----</h4>
                             </div>
@@ -102,17 +131,13 @@
                                 class="col d-flex align-items-center justify-content-center">
                                 <h4 class="samples" id="titleSample">Total Samples:</h4>
                             </div>
-                            <div class="col">
-                                <div class="row h-100">
-                                    <div class="col align-items-center justify-content-center d-flex">
-                                        <button
-                                            id="showButton"
-                                            type="button" 
-                                            class="btn btn-primary btn-sm">
-                                            Show Hi/Lo
-                                          </button>
-                                    </div>
-                                </div>
+                            <div class="col-1 align-items-center d-flex border border-dark">
+                                <button
+                                    id="showButton"
+                                    type="button" 
+                                    class="btn btn-primary btn-sm">
+                                    Hi/Lo
+                                    </button>
                             </div>
                         </div>
                         <!-- CURRENT OUTSIDE, PIPE, SHED TEMPS -->
@@ -120,7 +145,7 @@
                             <div class="col border bg-info bg-opacity-75">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header ">OUTSIDE TEMP (F)</h4>
+                                        <h4 class="card-header ">BY DOOR TEMP (F)</h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -130,9 +155,9 @@
                                 </div>
                             </div>
                             <div class="col border bg-opacity-75" style="background-color: #eb3471;">
-                                <div class="row border border-dark h-25">
+                                <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header">PIPE TEMP (F)</h4>
+                                        <h4 class="card-header">OUTSIDE TEMP (F)</h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -141,10 +166,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col border bg-warning bg-opacity-75">
+                            <div class="col border bg-light bg-opacity-75">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header">SHED TEMP (F)</h4>
+                                        <h4 class="card-header">INSIDE TEMP (F)</h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">

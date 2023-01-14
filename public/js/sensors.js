@@ -5,9 +5,14 @@
  * received, last data is compared to this data to see if the minimum delta is met
  * on any of the sensors. If not, the sample is ignored.  If so, the data is added to
  * the database, via notification to the server.
+ * If a sensor misfires, a recursive call to pumpEngine() will try up to RECURSE_MAX
+ * times to obtain valid data. If valid data still cannot be obtained, the ERROR
+ * indicator on the UI is illuminated and an ERROR is thrown.  This will cause the 
+ * program to halt.
  */
 const notifier = require('./notifier');
 const ds18b20 = require('ds18b20-raspi');
+const { ERROR } = require('sqlite3');
 const myDeviceName = 'sensors';
 
 console.log(`${myDeviceName}: loading....`);
@@ -15,17 +20,21 @@ console.log(`${myDeviceName}: loading....`);
 const durationSeconds = 30;
 const PUMP_DURATION = durationSeconds * 1000;
 const DELTA_THRESHOLD = 0.5;
+const NO_DATA = {};
+const RECURSE_MAX = 3;
+let sensor_malfunction = false;
+let isMisfiredObj = {};
 
 notifier.on('connect', () => {
-    console.log(`${myDeviceName}: Sensor connected to Server Notifier.`);
+    console.log(`${myDeviceName}: Sensors connected to Server Notifier.`);
 });
 
 notifier.on('server_sends_message', (dataIn) => {
     ({message, data} = dataIn)
     if (message === 'hit_pump_once') {
-        pumpEngineOnce();
+        pumpEngine(NO_DATA, RECURSE_MAX, true)
     } else if (message === 'last_record_ready') {
-        pumpEngine(data);
+        pumpEngine(data, RECURSE_MAX, false);
     }
 });
 
@@ -48,61 +57,78 @@ const buildTimeStamp = () => {
     return {'date': fullDate, 'time': currentTime};
 }
 
-const pumpEngineOnce = () => {
-    notifier.emit('sensors_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
-    const allTemps2 = getAllTemperatures();
-    const outsideTemp =   allTemps2[0].t; // REAL TEMP //
-    const pipeTemp =      allTemps2[1].t; // REAL TEMP //
-    const shedTemp =      allTemps2[2].t; // REAL TEMP //
-
-    const currentTimeStamp = buildTimeStamp();
-
-    const tempPackage = {
-        'time_stamp': {'date_obj': currentTimeStamp},
-        'outside': {'name': 'outside', 'temp': outsideTemp},
-        'pipe': {'name': 'pipe', 'temp': pipeTemp},
-        'shed': {'name': 'shed', 'temp': shedTemp},
-    }
-
-    console.log(`${myDeviceName}: pumpEngineOnce(): data:`);
-    console.log(tempPackage)
-    notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
-}
-
 /**
  * checkForNullUndefined()
- * @param {*} varIn 
- * @returns boolean: false: Data is valid. true: is null or undefine.
+ * @param {*} arrayIn 
+ * @returns Object: name: name of failing sensor, result: true: is null or undefine.
  */
-let checkForNullUndefined = (varIn) => {
-    if (varIn == null || varIn === 'undefined') {
-        return true;
+let checkForNullUndefined = (arrayIn) => {
+    let result = false;
+    let failName = '';
+    
+    for (let i=0; i<arrayIn.length; i++ ) {
+        if (arrayIn[i].temp == null || arrayIn[i].temp === 'undefined') {
+            result = true;
+            failName = arrayIn[i].name;
+            break;
+        } 
+    };
+
+    const returnResult = {
+        'result': result,
+        'name': failName || ''
     }
 
-    return false;
+    return returnResult;
 }
 
-const pumpEngine = (lastRecordIn) => {
+// let testCounter = 5;
+const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
+    // testCounter--;
+    const recurseCounter = recursesRemaining - 1;
     const allTemps2 = getAllTemperatures();
-    const outsideTemp =   allTemps2[0].t; // REAL TEMP //
-    const pipeTemp =      allTemps2[1].t; // REAL TEMP //
-    const shedTemp =      allTemps2[2].t; // REAL TEMP //
+    // const outsideTemp =   (testCounter >=0) ? allTemps2[0].t : null   // REAL TEMP //
+    const outsideTemp =   allTemps2[0].t;   // REAL TEMP //
+    const pipeTemp =      allTemps2[1].t;   // REAL TEMP //
+    const shedTemp =      allTemps2[2].t;   // REAL TEMP //
 
     // Sometimes a sensor will misfire. Check for null or undefined data. //
-    if (checkForNullUndefined(outsideTemp) || checkForNullUndefined(pipeTemp) || checkForNullUndefined(shedTemp)) {
+    const checkArray = [
+        {'name': 'outside', 'temp': outsideTemp},
+        {'name': 'pipe', 'temp': pipeTemp},
+        {'name': 'shed', 'temp': shedTemp},
+    ]
+    
+    isMisfiredObj = checkForNullUndefined(checkArray);
+    isMisfired = isMisfiredObj.result;
+
+    if (isMisfired && (recurseCounter >= 1)) {
+        console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Trying again....`);
+
+        // RECURSIVE...
+        pumpEngine(lastRecordIn, recurseCounter, initializing);
+    } else if (isMisfired && !recurseCounter) {
+        // Give up. It has been RECURSE_MAX attempts. A sensor, or sensors, is malfunctioning.
+        // Message to server will be sent at the very end of this module.  The server will throw the 
+        // error.
         console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Ignoring this sample.`);
-        return;
+        sensor_malfunction = true;
     }
 
     // Reduce data storage: Check to see if any sensor value meets the minimum delta threshold. //
+    // Logic evaluates to TRUE if the threshold is met.
     const lrOutside = Math.abs(lastRecordIn.outside_temp - outsideTemp) >= DELTA_THRESHOLD;
     const lrPipe = Math.abs(lastRecordIn.pipe_temp - pipeTemp) >= DELTA_THRESHOLD;
     const lrShed = Math.abs(lastRecordIn.shed_temp - shedTemp) >= DELTA_THRESHOLD;
-    if ( !(lrOutside || lrPipe || lrShed) ) {
+    
+    // If this is first pass after power on, then ignore because we want to update the UI.
+    if (!initializing) {
+        if ( !(lrOutside || lrPipe || lrShed) ) {
 
-        // None of the sensors' data has met minimum threshold so ignore. //
+            // None of the sensors' data has met the minimum threshold of +/-0.5 deg F so ignore. //
 
-        return;
+            return;
+        }
     }
 
     const currentTimeStamp = buildTimeStamp();
@@ -114,7 +140,11 @@ const pumpEngine = (lastRecordIn) => {
         'shed': {'name': 'shed', 'temp': shedTemp},
     }
 
-    notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
+    if (!sensor_malfunction) {
+        notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
+    } else {
+        notifier.emit('sensors_sends_message', {'message': 'sensor_malfunction', 'data': isMisfiredObj.name});
+    }
 }
 
 const sensorScanPump = () => {

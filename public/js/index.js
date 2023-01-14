@@ -3,6 +3,7 @@ const socket = io();
 
 const SAMPLE_INDICATOR ='#samplingIndicator';
 const UPDATE_INDICATOR = '#updatingIndicator';
+const ERROR_MODAL = '#errorModal';
 
 socket.on('connect', () => {
     console.log('CONNEDCTED!');
@@ -54,13 +55,18 @@ socket.on('server_sends_message', (dataIn) => {
         $('#imSayin').text('Hello, America!!!')
 
         // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
-        let myModal = new bootstrap.Modal(document.getElementById("exampleModal"), {});
-        myModal.show();
+        let minMaxModal = new bootstrap.Modal(document.getElementById("exampleModal"), {});
+        minMaxModal.show();
     
     } else if (message === 'send_id') {
         socket.emit('index_sends_message', {'message': 'my_id', 'data': myDeviceName});
     } else if (message === 'sampling_start') {
         flashIndicator(SAMPLE_INDICATOR);
+    } else if (message === 'sensor_malfunction') {
+        // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
+        $('#errorMessage').text(`"${data}" sensor is malfunctioning.`);
+        let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
+        errorModal.show();
     }
 });
 

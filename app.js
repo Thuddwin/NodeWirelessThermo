@@ -40,6 +40,7 @@ app.get('/', (req,res) => {
   // SENSOR SENT //
   notifier.on('sensors_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
+    console.log(`${myDeviceName}:on.sensor_sends_message: ${message}`);
     if(message === 'temp_update') {
         // Message for shedDB ADD CURRENT SAMPLE ONLY //
         notifier.emit('server_sends_message', {'message': 'add_temp_samples', 'data': data})
@@ -50,6 +51,10 @@ app.get('/', (req,res) => {
     
     } else if (message === 'get_last_record') {
         notifier.emit('server_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
+    } else if (message === 'sensor_malfunction') {
+        io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
+        const errMsg = `${myDeviceName}: Sensor "${data}" is malfunctioning. Program halted. Service required.`;
+        throw new Error(errMsg);
     }
   });
 

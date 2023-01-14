@@ -6,7 +6,7 @@ const dbPath = path.join(__dirname, '../database/temps.db');
 const shedDB = require('better-sqlite3')(dbPath);
 
 const myDeviceName = 'shedDB';
-const getLimit = 100;
+const GET_LIMIT = 50;
 
 const createTables = () => {
     // id = key, sensor_name = OUTSIDE, PIPE, SHED, 
@@ -49,7 +49,7 @@ const runQuery = async () => {
     let s = [];
     let ts = [];
 
-    let temps100 = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${getLimit}) ORDER BY id ASC;`).all();
+    let temps100 = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${GET_LIMIT}) ORDER BY id ASC;`).all();
     let sampleCount = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all();
     const tempsLen = temps100.length;
     for (let i = 0; i < tempsLen; i++ ) {
