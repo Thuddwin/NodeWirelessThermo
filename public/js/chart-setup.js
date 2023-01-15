@@ -37,7 +37,6 @@
                 borderColor: outsideGradient,
                 tension: 0.4,
                 fill: isFillOneEnb
-
             },
             {
                 label: 'Pipe',

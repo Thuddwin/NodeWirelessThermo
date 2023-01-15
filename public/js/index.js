@@ -4,6 +4,7 @@ const socket = io();
 const SAMPLE_INDICATOR ='#samplingIndicator';
 const UPDATE_INDICATOR = '#updatingIndicator';
 const ERROR_MODAL = '#errorModal';
+const PRIMARY_SENSOR = 'Outside'
 const cardMap = { 'cardOne': 0, 'cardTwo': 1, 'cardThree': 2, };
 
 
@@ -54,10 +55,11 @@ socket.on('server_sends_message', (dataIn) => {
         $('#shedHi').text(max.shed_temp);
 
 
-        $('#imSayin').text('Hello, America!!!')
+        $('#minMaxModalLabel').text(`Highest/Lowest Temps Based On ${PRIMARY_SENSOR} Sensor.`)
 
         // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
-        let minMaxModal = new bootstrap.Modal(document.getElementById("exampleModal"), {});
+        // TODO: ISSUE: This is causing all browsers to pop this modal.
+        let minMaxModal = new bootstrap.Modal(document.getElementById("minMaxModal"), {});
         minMaxModal.show();
     
     } else if (message === 'send_id') {
@@ -95,9 +97,9 @@ const buildTimeAxis = (timeAxisIn) => {
         
         if (lastDate !== tObj.date) {
             lastDate = tObj.date;
-            timeArray.push(tObj.date);
+            timeArray.push([tObj.date,tObj.time]);
         } else {
-            // else push TIME
+            // else push TIME only
             timeArray.push(tObj.time);
         }
     });
