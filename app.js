@@ -32,8 +32,6 @@ app.get('/', (req,res) => {
             }
         } else if (message === 'get_min_max') {
             notifier.emit('server_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
-        } else if (message === 'toggle_fill') {
-            console.log(`${myDeviceName}: on.index_sends_message(message: ${message}, 'data': ${data})`);
         }
       })
     });
@@ -42,13 +40,11 @@ app.get('/', (req,res) => {
   // SENSOR SENT //
   notifier.on('sensors_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    console.log(`${myDeviceName}:on.sensor_sends_message: ${message}`);
     if(message === 'temp_update') {
         // Message for shedDB ADD CURRENT SAMPLE ONLY //
         notifier.emit('server_sends_message', {'message': 'add_temp_samples', 'data': data})
         io.emit('server_sends_message', {'message': 'temp_update', 'data': data});
     } else if (message === 'sampling_start') {
-        console.log(`${myDeviceName}:on.sampling start...`);
         io.emit('server_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
     
     } else if (message === 'get_last_record') {
