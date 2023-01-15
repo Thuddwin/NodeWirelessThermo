@@ -6,7 +6,7 @@ const dbPath = path.join(__dirname, '../database/temps.db');
 const shedDB = require('better-sqlite3')(dbPath);
 
 const myDeviceName = 'shedDB';
-const GET_LIMIT = 50;
+const GET_LIMIT = 60;
 
 const createTables = () => {
     // id = key, sensor_name = OUTSIDE, PIPE, SHED, 

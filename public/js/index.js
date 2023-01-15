@@ -90,16 +90,20 @@ const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeOut(1500);
 }
 
+let lastDate = '';
 const buildTimeAxis = (timeAxisIn) => {
     let timeArray = [];
-    let lastDate = '';
     timeAxisIn.forEach(tObj => {
-        
         if (lastDate !== tObj.date) {
+            console.log(`${myDeviceName}: buildTimeAxis():`);
+            console.log(`BEFORE: lastDate: ${lastDate}, nowDate: ${tObj.date}, nowTime: ${tObj.time}`);
             lastDate = tObj.date;
             timeArray.push([tObj.date,tObj.time]);
+            console.log(`AFTER: lastDate: ${lastDate}, nowDate: ${tObj.date}, nowTime: ${tObj.time}`);
+            
         } else {
             // else push TIME only
+            console.log(`${myDeviceName}: buildTimeAxis(): saving Time Only: ${tObj.time}`);
             timeArray.push(tObj.time);
         }
     });
