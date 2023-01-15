@@ -4,6 +4,8 @@ const socket = io();
 const SAMPLE_INDICATOR ='#samplingIndicator';
 const UPDATE_INDICATOR = '#updatingIndicator';
 const ERROR_MODAL = '#errorModal';
+const cardMap = { 'cardOne': 0, 'cardTwo': 1, 'cardThree': 2, };
+
 
 socket.on('connect', () => {
     console.log('CONNEDCTED!');
@@ -72,7 +74,14 @@ socket.on('server_sends_message', (dataIn) => {
 
 $('#showButton').on('click', () => {
     socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
-})
+});
+
+$('.cardFillToggle').on('click', (cardIn) => {
+    const idIn = cardIn.target.id;
+    let oneFillEnb = chrt.data.datasets[cardMap[idIn]].fill;
+    chrt.data.datasets[cardMap[idIn]].fill = !oneFillEnb;
+    chrt.update();
+});
 
 const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);

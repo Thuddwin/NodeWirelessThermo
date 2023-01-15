@@ -32,6 +32,8 @@ app.get('/', (req,res) => {
             }
         } else if (message === 'get_min_max') {
             notifier.emit('server_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
+        } else if (message === 'toggle_fill') {
+            console.log(`${myDeviceName}: on.index_sends_message(message: ${message}, 'data': ${data})`);
         }
       })
     });

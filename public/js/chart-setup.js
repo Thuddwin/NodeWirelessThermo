@@ -1,4 +1,7 @@
     const FILL_ENABLED = true;
+    
+    let isFillOneEnb = true;
+
     const outsideColor = { 'r':13, 'g':202, 'b':230, 'a':0.5 };   // '#0dcaf0';
     // const pipeColor = { 'r':235, 'g':52, 'b':113, 'a':1 };        // '#eb3471';
     const pipeColor = { 'r':255, 'g':0, 'b':0, 'a':1 };        // '#ff0000';
@@ -17,8 +20,6 @@
         return gradient;
     };
 
-
-
     const outsideGradient = setGradient(outsideColor);
     const pipeGradient = setGradient(pipeColor);
     const shedGradient = setGradient(shedColor);
@@ -35,7 +36,7 @@
                 backgroundColor: outsideGradient,
                 borderColor: outsideGradient,
                 tension: 0.4,
-                fill: FILL_ENABLED
+                fill: isFillOneEnb
 
             },
             {
@@ -102,4 +103,3 @@
     const chrt = new Chart(chartContext, chartOptions);
 
     console.log(chrt)
-    

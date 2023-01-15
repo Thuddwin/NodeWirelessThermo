@@ -57,3 +57,7 @@ h1, h4 {
     height: 67vh;
     width: 100%;
 }
+
+.djm-pointer {
+    cursor: pointer;
+}
