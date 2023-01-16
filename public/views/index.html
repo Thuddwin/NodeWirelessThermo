@@ -50,17 +50,17 @@
                             </div></div></div>
                 </div>
                 <div class="col outside-col bg-info text-center border">
-                    <div class="row"><div class="col">By Door</div></div>
+                    <div class="row"><div class="col" id="minMaxModalColOne"></div></div>
                     <div class="row"><div class="col" id="outsideLo">----</div></div>
                     <div class="row"><div class="col" id="outsideHi">----</div></div>
                 </div>
                 <div class="col pipe-col text-center border" style="background-color: #eb3471">
-                    <div class="row"><div class="col">Outside</div></div>
+                    <div class="row"><div class="col" id="minMaxModalColTwo"></div></div>
                     <div class="row"><div class="col" id="pipeLo">----</div></div>
                     <div class="row"><div class="col" id="pipeHi">----</div></div>
                 </div>
                 <div class="col shed-col bg-light text-center border">
-                    <div class="row"><div class="col">Inside</div></div>
+                    <div class="row"><div class="col" id="minMaxModalColThree"></div></div>
                     <div class="row"><div class="col" id="shedLo">----</div></div>
                     <div class="row"><div class="col" id="shedHi">----</div></div>
                 </div>
@@ -141,7 +141,7 @@
                             <div class="col border bg-info bg-opacity-75">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center djm-pointer">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardOne">BY DOOR TEMP (F)</h4>
+                                        <h4 class="card-header cardFillToggle w-100" id="cardOne"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -150,10 +150,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col border bg-opacity-75 djm-pointer" style="background-color: #eb3471;">
+                            <div class="col border bg-opacity-75 bg-danger djm-pointer">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardTwo">OUTSIDE TEMP (F)</h4>
+                                        <h4 class="card-header cardFillToggle w-100" id="cardTwo"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -165,7 +165,7 @@
                             <div class="col border bg-light bg-opacity-75 djm-pointer">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardThree">INSIDE TEMP (F)</h4>
+                                        <h4 class="card-header cardFillToggle w-100" id="cardThree"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">

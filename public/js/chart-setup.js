@@ -3,9 +3,7 @@
     let isFillOneEnb = true;
 
     const outsideColor = { 'r':13, 'g':202, 'b':230, 'a':0.5 };   // '#0dcaf0';
-    // const pipeColor = { 'r':235, 'g':52, 'b':113, 'a':1 };        // '#eb3471';
     const pipeColor = { 'r':255, 'g':0, 'b':0, 'a':1 };        // '#ff0000';
-    // const shedColor = { 'r':235, 'g':193, 'b':7, 'a':1 };         // '#ffc107';
     const shedColor = { 'r':255, 'g':255, 'b':255, 'a':0.5 };         // '#ffffff';
 
     const canvas = document.getElementById('canvas');
@@ -30,7 +28,7 @@
             labels: [],
             datasets: [
             {
-                label: 'Outside',
+                label: '', //Filled In at start of index.js
                 data: [],
                 borderWidth: 2,
                 backgroundColor: outsideGradient,
@@ -39,7 +37,7 @@
                 fill: isFillOneEnb
             },
             {
-                label: 'Pipe',
+                label: '', //Filled In at start of index.js
                 data: [],
                 borderWidth: 2,
                 backgroundColor: pipeGradient,
@@ -48,7 +46,7 @@
                 fill: FILL_ENABLED
             },
             {
-                label: 'Shed',
+                label: '', //Filled In at start of index.js
                 data: [],
                 borderWidth: 2,
                 backgroundColor: shedGradient,

@@ -4,9 +4,34 @@ const socket = io();
 const SAMPLE_INDICATOR ='#samplingIndicator';
 const UPDATE_INDICATOR = '#updatingIndicator';
 const ERROR_MODAL = '#errorModal';
-const PRIMARY_SENSOR = 'Outside'
+
+// When changing label names, change these only. //
+const SENSOR_1 = 'By Door';
+const SENSOR_2 = 'Outside';
+const SENSOR_3 = 'Inside';
+///////////////////////////////////////////////////
+
+const PRIMARY_SENSOR = SENSOR_2
+
+const CARD_ONE_TITLE = `${SENSOR_1.toUpperCase()} TEMP (F)`;
+const CARD_TWO_TITLE = `${SENSOR_2.toUpperCase()} TEMP (F)`;
+const CARD_THREE_TITLE = `${SENSOR_3.toUpperCase()} TEMP (F)`;
 const cardMap = { 'cardOne': 0, 'cardTwo': 1, 'cardThree': 2, };
 
+
+// Fill In Titles, Labels, etc... //
+$('#cardOne').text(CARD_ONE_TITLE);
+$('#cardTwo').text(CARD_TWO_TITLE);
+$('#cardThree').text(CARD_THREE_TITLE);
+$("#minMaxModalColOne").text(SENSOR_1);
+$("#minMaxModalColTwo").text(SENSOR_2);
+$("#minMaxModalColThree").text(SENSOR_3);
+    // NOTE: Chart datasets is an array of objects.
+    //      First object is relative to cardOne, 
+    //      second to cardTwo, etc.
+    chrt.data.datasets[0].label = SENSOR_1;
+    chrt.data.datasets[1].label = SENSOR_2;
+    chrt.data.datasets[2].label = SENSOR_3;
 
 socket.on('connect', () => {
     console.log('CONNEDCTED!');
@@ -93,8 +118,9 @@ const flashIndicator = (elementIdStringIn) => {
 let lastDate = '';
 const buildTimeAxis = (timeAxisIn) => {
     let timeArray = [];
+    let index = 0;
     timeAxisIn.forEach(tObj => {
-        if (lastDate !== tObj.date) {
+        if ((lastDate !== tObj.date) || !index) {
             console.log(`${myDeviceName}: buildTimeAxis():`);
             console.log(`BEFORE: lastDate: ${lastDate}, nowDate: ${tObj.date}, nowTime: ${tObj.time}`);
             lastDate = tObj.date;
@@ -106,6 +132,7 @@ const buildTimeAxis = (timeAxisIn) => {
             console.log(`${myDeviceName}: buildTimeAxis(): saving Time Only: ${tObj.time}`);
             timeArray.push(tObj.time);
         }
+        index++;
     });
     
     return timeArray;
