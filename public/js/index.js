@@ -18,6 +18,7 @@ const CARD_TWO_TITLE = `${SENSOR_2.toUpperCase()} TEMP (F)`;
 const CARD_THREE_TITLE = `${SENSOR_3.toUpperCase()} TEMP (F)`;
 const cardMap = { 'cardOne': 0, 'cardTwo': 1, 'cardThree': 2, };
 
+let isMinMaxForMe = false;
 
 // Fill In Titles, Labels, etc... //
 $('#cardOne').text(CARD_ONE_TITLE);
@@ -32,6 +33,7 @@ $("#minMaxModalColThree").text(SENSOR_3);
     chrt.data.datasets[0].label = SENSOR_1;
     chrt.data.datasets[1].label = SENSOR_2;
     chrt.data.datasets[2].label = SENSOR_3;
+$('#minMaxModalLabel').text(`Highest/Lowest Temps Based On ${PRIMARY_SENSOR} Sensor.`)
 
 socket.on('connect', () => {
     console.log('CONNEDCTED!');
@@ -67,6 +69,8 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.data.labels = xAxis;
         chrt.update();
     } else if (message === 'min_max_temps_ready') {
+        if (!isMinMaxForMe) { return; }
+        isMinMaxForMe = false;
         ({min, max} = data)
         $('#loDate').text(min.date_stamp);
         $('#loTime').text(min.time_stamp);
@@ -79,11 +83,7 @@ socket.on('server_sends_message', (dataIn) => {
         $('#shedLo').text(min.shed_temp);
         $('#shedHi').text(max.shed_temp);
 
-
-        $('#minMaxModalLabel').text(`Highest/Lowest Temps Based On ${PRIMARY_SENSOR} Sensor.`)
-
         // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
-        // TODO: ISSUE: This is causing all browsers to pop this modal.
         let minMaxModal = new bootstrap.Modal(document.getElementById("minMaxModal"), {});
         minMaxModal.show();
     
@@ -99,7 +99,8 @@ socket.on('server_sends_message', (dataIn) => {
     }
 });
 
-$('#showButton').on('click', () => {
+$('#minMaxButton').on('click', () => {
+    isMinMaxForMe = true;
     socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
 });
 
@@ -121,15 +122,11 @@ const buildTimeAxis = (timeAxisIn) => {
     let index = 0;
     timeAxisIn.forEach(tObj => {
         if ((lastDate !== tObj.date) || !index) {
-            console.log(`${myDeviceName}: buildTimeAxis():`);
-            console.log(`BEFORE: lastDate: ${lastDate}, nowDate: ${tObj.date}, nowTime: ${tObj.time}`);
             lastDate = tObj.date;
             timeArray.push([tObj.date,tObj.time]);
-            console.log(`AFTER: lastDate: ${lastDate}, nowDate: ${tObj.date}, nowTime: ${tObj.time}`);
             
         } else {
             // else push TIME only
-            console.log(`${myDeviceName}: buildTimeAxis(): saving Time Only: ${tObj.time}`);
             timeArray.push(tObj.time);
         }
         index++;
