@@ -141,7 +141,7 @@
                             <div class="col border bg-info bg-opacity-75">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center djm-pointer">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardOne"></h4>
+                                        <h4 class="card-header graphFillToggle w-100" id="cardOne"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -153,7 +153,7 @@
                             <div class="col border bg-opacity-75 bg-danger djm-pointer">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardTwo"></h4>
+                                        <h4 class="card-header graphFillToggle w-100" id="cardTwo"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -165,7 +165,7 @@
                             <div class="col border bg-light bg-opacity-75 djm-pointer">
                                 <div class="row border h-25">
                                     <div class="col djm-card d-flex align-items-center">
-                                        <h4 class="card-header cardFillToggle w-100" id="cardThree"></h4>
+                                        <h4 class="card-header graphFillToggle w-100" id="cardThree"></h4>
                                     </div>
                                 </div>
                                 <div class="row border h-75">
@@ -177,12 +177,65 @@
                         </div>
                     </div>
                 </div>
-                <div class="row mt-2" >
+                <div class="row" >
                     <div class="col bg-dark bg-opacity-50">
                         <div class="chartBox">
                             <canvas id="canvas"></canvas>
                         </div>
                     </div>
+                </div>
+
+                <!-- <div class="progress" style="height: 3px;">
+                    <div 
+                        class="progress-bar" 
+                        role="progressbar" 
+                        style="width: 25%;" 
+                        aria-valuenow="25" 
+                        aria-valuemin="500" 
+                        aria-valuemax="1361">
+                    </div>
+                </div> -->
+
+                <div class="row border" style="height: 3px;">
+                    <div class="col w-100" id="progOuter">
+                        <div class="bg-primary position-absolute" id ="progBar" style="height: 3px; width: 5px;"></div>
+                    </div>
+                </div>
+                <div class="row" style="height: 5vh;">
+                    <div class="col-3"></div>
+                    <div class="col d-flex justify-content-evenly align-items-center">
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm chartDataViews"
+                            id="scrollLeft">
+                            &lt Scroll Left
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm chartDataViews"
+                            id="zoomIn">
+                            Zoom In
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm chartDataViews"
+                            id="zoomReset">
+                            Reset All
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm chartDataViews"
+                            id="zoomOut">
+                            Zoom Out
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-sm chartDataViews"
+                            id="scrollRight">
+                            Scroll Right >
+                        </button>
+                    </div>
+                    <div class="col-3"></div>
                 </div>
             </div>
         </div>

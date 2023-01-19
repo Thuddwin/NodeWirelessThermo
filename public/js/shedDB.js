@@ -6,7 +6,19 @@ const dbPath = path.join(__dirname, '../database/temps.db');
 const shedDB = require('better-sqlite3')(dbPath);
 
 const myDeviceName = 'shedDB';
-const GET_LIMIT = 60;
+
+// NOTE: The following data items are in this module because
+//       they 'shape' the data to be retrieved even though they
+//       look like they should be handled elsewhere.
+const LIMIT_DEFAULT_VALUE = 60;
+let get_limit = LIMIT_DEFAULT_VALUE;
+let totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+
+let rangeStart = totalRecords - get_limit;
+
+// Min/Max datapoints to fetch from database //
+const MAX_LIMIT = 200;
+const MIN_LIMIT = 10;
 
 const createTables = () => {
     // id = key, sensor_name = OUTSIDE, PIPE, SHED, 
@@ -48,15 +60,27 @@ const runQuery = async () => {
     let p = [];
     let s = [];
     let ts = [];
+    let resultCount = undefined;
 
-    let temps100 = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${GET_LIMIT}) ORDER BY id ASC;`).all();
-    let sampleCount = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all();
-    const tempsLen = temps100.length;
+    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+
+    const isRangeQuery = true;
+    if (isRangeQuery) {
+        const rangeEnd = rangeStart + get_limit;
+        const prepareString = ` SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
+        console.log(`${myDeviceName}: runQuery(): prepareString:`);
+        console.log(prepareString);
+        resultCount = shedDB.prepare(prepareString).all();
+    } else {
+        resultCount = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${get_limit}) ORDER BY id ASC;`).all();
+    }
+        
+    const tempsLen = resultCount.length;
     for (let i = 0; i < tempsLen; i++ ) {
-        o.push(temps100[i].outside_temp);
-        p.push(temps100[i].pipe_temp);
-        s.push(temps100[i].shed_temp);
-        ts.push({'date': temps100[i].date_stamp, 'time': temps100[i].time_stamp});
+        o.push(resultCount[i].outside_temp);
+        p.push(resultCount[i].pipe_temp);
+        s.push(resultCount[i].shed_temp);
+        ts.push({'date': resultCount[i].date_stamp, 'time': resultCount[i].time_stamp});
     };
 
     allTemps = {
@@ -64,7 +88,7 @@ const runQuery = async () => {
         'pipe': p,
         'shed': s,
         'time_stamp': ts,
-        'sample_count': sampleCount[0]
+        'sample_count': totalRecords
     };
 
     return allTemps;
@@ -98,6 +122,12 @@ notifier.on('server_sends_message', (dataIn) => {
     } else if (message === 'run_query') {
         runQuery().then((queryResult) => {
             notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
+            const indicatorData = {
+                'totalRecords': totalRecords,
+                'startIndex': rangeStart,
+                'dataWidth': get_limit
+            }
+            notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
         });
     } else if (message === 'get_min_max') {
         getMinMaxPipeTemps().then((queryResult) => {
@@ -106,6 +136,38 @@ notifier.on('server_sends_message', (dataIn) => {
     } else if (message === 'get_last_record') {
         getLastRecord().then((lastRecord) => {
             notifier.emit('shedDB_sends_message', {'message': 'last_record_ready', 'data': lastRecord[0]});
+        });
+    } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
+        console.log(`${myDeviceName}: on.server_sends_message: ${message}, data: ${data}`);
+        switch(message) {
+            case 'scrollLeft':
+                rangeStart = (rangeStart >= 0) ? (rangeStart -= get_limit) : 0;
+            break;
+            case 'scrollRight':
+                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+                rangeStart = (rangeStart <= (totalRecords - get_limit)) ? (rangeStart += get_limit) : (totalRecords - get_limit);
+            break;
+            case 'zoomIn':
+                get_limit = (get_limit > MIN_LIMIT) ? get_limit -= 10 : MIN_LIMIT;
+            break;
+            case 'zoomOut':
+                get_limit = (get_limit < MAX_LIMIT) ? (get_limit += 10) : MAX_LIMIT;
+            break;
+            case 'zoomReset':
+                get_limit = LIMIT_DEFAULT_VALUE;
+                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+                rangeStart = totalRecords - get_limit;
+            break;
+        }
+
+        runQuery().then((queryResult) => {
+            const indicatorData = {
+                'totalRecords': totalRecords,
+                'startIndex': rangeStart,
+                'dataWidth': get_limit
+            };
+            notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
+            notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
         });
     }
 })
