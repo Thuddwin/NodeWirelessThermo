@@ -34,7 +34,6 @@ app.get('/', (req,res) => {
             notifier.emit('server_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
         } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
             // Notify shedDB.js
-            console.log(`${myDeviceName}: Message from index: ${message}, data: ${data}`);
             notifier.emit('server_sends_message', {'message': message, 'data': data});
         }
       })

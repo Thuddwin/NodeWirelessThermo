@@ -68,8 +68,6 @@ const runQuery = async () => {
     if (isRangeQuery) {
         const rangeEnd = rangeStart + get_limit;
         const prepareString = ` SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
-        console.log(`${myDeviceName}: runQuery(): prepareString:`);
-        console.log(prepareString);
         resultCount = shedDB.prepare(prepareString).all();
     } else {
         resultCount = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${get_limit}) ORDER BY id ASC;`).all();
