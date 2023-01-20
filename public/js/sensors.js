@@ -84,10 +84,8 @@ let checkForNullUndefined = (arrayIn) => {
 
 // let testCounter = 5;
 const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
-    // testCounter--;
     const recurseCounter = recursesRemaining - 1;
     const allTemps2 = getAllTemperatures();
-    // const outsideTemp =   (testCounter >=0) ? allTemps2[0].t : null   // REAL TEMP //
     const outsideTemp =   allTemps2[0].t;   // REAL TEMP //
     const pipeTemp =      allTemps2[1].t;   // REAL TEMP //
     const shedTemp =      allTemps2[2].t;   // REAL TEMP //

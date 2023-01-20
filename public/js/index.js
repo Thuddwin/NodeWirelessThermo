@@ -20,6 +20,18 @@ const cardMap = { 'cardOne': 0, 'cardTwo': 1, 'cardThree': 2, };
 
 let isMinMaxForMe = false;
 
+// Graph Zoom, Scroll Globals //
+const MAX_DATA_POINTS = 100;
+let zoomFactor = 0; // NOTE: zoomFactor will changed when Zoom In/Out buttons are clicked.
+let dataPoints = MAX_DATA_POINTS - zoomFactor;
+
+// Assign button events for Chart Scroll, Reset, Zoom.
+$('.chartDataViews').on('click', (eventIn) => {
+    const btnId = eventIn.target.id;
+    console.log(`${btnId} was clicked! socket.emit...`);
+    socket.emit('index_sends_message', {'message': `${btnId}`, 'data': 'NO DATA'});
+});
+
 // Fill In Titles, Labels, etc... //
 $('#cardOne').text(CARD_ONE_TITLE);
 $('#cardTwo').text(CARD_TWO_TITLE);
@@ -57,7 +69,7 @@ socket.on('server_sends_message', (dataIn) => {
     } else if (message === 'temp_samples_ready') {
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
         flashIndicator(UPDATE_INDICATOR)
-        $('#titleSample').text(`Total Samples: ${sample_count.sample_count}`);
+        $('#titleSample').text(`Total Samples: ${sample_count}`);
         // Data comes in as: {[outside], [pipe], [shed], [{time_stamp:date, time}]},
         // so will need to massage time_stamp before stuffing it into the graph.
         // Plan: Date tick only when day changes and is a different color.
@@ -68,6 +80,11 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.data.datasets[2].data = shed;
         chrt.data.labels = xAxis;
         chrt.update();
+        //////////////////////////////////////////////////////////////////////
+        
+        // TODO: below...
+        // updateChartButtonsState({'dataPoints': chrt.data.datasets});
+
     } else if (message === 'min_max_temps_ready') {
         if (!isMinMaxForMe) { return; }
         isMinMaxForMe = false;
@@ -96,6 +113,28 @@ socket.on('server_sends_message', (dataIn) => {
         $('#errorMessage').text(`"${data}" sensor is malfunctioning.`);
         let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
         errorModal.show();
+    } else if (message === 'indicator_data_ready') {
+        ({totalRecords, startIndex, dataWidth} = data)
+        console.log(`${myDeviceName}:on.indicator_data_ready...`)
+        console.log(`${myDeviceName}: on.indicator_data_ready: data:`)
+        console.log(`totalRecords: ${totalRecords}, startIndex: ${startIndex}, dataWidth: ${dataWidth}`);
+        const progOuterWidth = $('#progOuter').width();
+        const progBarPosition = $('#progBar').position();
+        const dataPoint = progOuterWidth / totalRecords; console.log(`Calculated dataPoint = ${dataPoint}.`);
+        
+        const progBarWidth = dataPoint * dataWidth;
+        $('#progBar').width(progBarWidth);
+        
+        const progBarOffset = startIndex * dataPoint;
+        $('#progBar').offset({left: progBarOffset, top: progBarPosition.top});
+        
+        const progInfo = {
+            totalRecords: totalRecords,
+            progBarWidth: progBarWidth,
+            progBarOffset: progBarOffset,
+            progOuterWidth: progOuterWidth
+        };
+        updateChartButtonsState(progInfo);
     }
 });
 
@@ -104,12 +143,26 @@ $('#minMaxButton').on('click', () => {
     socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
 });
 
-$('.cardFillToggle').on('click', (cardIn) => {
+$('.graphFillToggle').on('click', (cardIn) => {
     const idIn = cardIn.target.id;
     let oneFillEnb = chrt.data.datasets[cardMap[idIn]].fill;
     chrt.data.datasets[cardMap[idIn]].fill = !oneFillEnb;
     chrt.update();
 });
+
+const updateChartButtonsState = (dataIn) => {
+    ({totalRecords, progBarWidth, progBarOffset, progOuterWidth} = dataIn)
+    console.log(`${myDeviceName}: updateChartButtonsState(): dataIn`);
+    console.log(dataIn);
+    const isDEnbScrollLeft = (progBarOffset < progBarWidth) ? true : false;
+    const isDEnbScrollRight = (Math.abs(progOuterWidth - (progBarOffset + progBarWidth)) < progBarWidth) ? true : false;
+    const isDEnbZoomIn = (progBarWidth <= 10) ? true : false;
+    const isDEnbZoomOut = ((progBarWidth >= 200) || (progBarWidth >= totalRecords)) ? true : false;
+    $('#scrollLeft').prop('disabled', isDEnbScrollLeft);
+    $('#scrollRight').prop('disabled', isDEnbScrollRight);
+    $('#zoomIn').prop('disabled', isDEnbZoomIn);
+    $('#zoomOut').prop('disabled', isDEnbZoomOut);
+};
 
 const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);

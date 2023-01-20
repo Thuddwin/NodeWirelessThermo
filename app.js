@@ -32,6 +32,9 @@ app.get('/', (req,res) => {
             }
         } else if (message === 'get_min_max') {
             notifier.emit('server_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
+        } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
+            // Notify shedDB.js
+            notifier.emit('server_sends_message', {'message': message, 'data': data});
         }
       })
     });
@@ -67,6 +70,8 @@ app.get('/', (req,res) => {
         io.emit('server_sends_message', {'message': 'min_max_temps_ready', 'data': data})
     } else if (message === 'last_record_ready') {
         notifier.emit('server_sends_message', {'message': 'last_record_ready', 'data': data});
+    } else if (message === 'indicator_data_ready') {
+        io.emit('server_sends_message', {'message': message, 'data': data});
     }
   });
 
