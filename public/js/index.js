@@ -53,8 +53,11 @@ socket.on('connect', () => {
 
 socket.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    // Current temps only. //
     if(message === 'temp_update') {
+        /* Card and Timestamp single data points only coming directly from 
+        the Sensor Module after crossing 5 degree threshold.
+        Does NOT update the Graph. Is NOT array data. */
+        
         flashIndicator(UPDATE_INDICATOR);
         ({ time_stamp, outside, pipe, shed } = data);
         ({ date_obj } = time_stamp);
@@ -67,12 +70,10 @@ socket.on('server_sends_message', (dataIn) => {
         // SHED
         $('#shedCurrentElem').text(`${shed.temp}`);
     } else if (message === 'temp_samples_ready') {
+        flashIndicator(UPDATE_INDICATOR);
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
-        flashIndicator(UPDATE_INDICATOR)
         $('#titleSample').text(`Total Samples: ${sample_count}`);
-        // Data comes in as: {[outside], [pipe], [shed], [{time_stamp:date, time}]},
-        // so will need to massage time_stamp before stuffing it into the graph.
-        // Plan: Date tick only when day changes and is a different color.
+
         const xAxis = buildTimeAxis(time_stamp);
 
         chrt.data.datasets[0].data = outside;
@@ -81,9 +82,6 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.data.labels = xAxis;
         chrt.update();
         //////////////////////////////////////////////////////////////////////
-        
-        // TODO: below...
-        // updateChartButtonsState({'dataPoints': chrt.data.datasets});
 
     } else if (message === 'min_max_temps_ready') {
         if (!isMinMaxForMe) { return; }
@@ -122,10 +120,10 @@ socket.on('server_sends_message', (dataIn) => {
         const progBarPosition = $('#progBar').position();
         const dataPoint = progOuterWidth / totalRecords; console.log(`Calculated dataPoint = ${dataPoint}.`);
         
-        const progBarWidth = dataPoint * dataWidth;
+        const progBarWidth = Math.round(dataPoint * dataWidth);
         $('#progBar').width(progBarWidth);
         
-        const progBarOffset = startIndex * dataPoint;
+        const progBarOffset = Math.round(startIndex * dataPoint);
         $('#progBar').offset({left: progBarOffset, top: progBarPosition.top});
         
         const progInfo = {
@@ -134,6 +132,12 @@ socket.on('server_sends_message', (dataIn) => {
             progBarOffset: progBarOffset,
             progOuterWidth: progOuterWidth
         };
+        console.log('PROGINFO:');
+        console.log(progInfo);
+        $('#infoProgBarWidth').text(`Bar Width: ${progBarWidth}`);
+        $('#infoProgOffset').text(`Bar Offset: ${progBarOffset}`);
+        $('#infoProgOuterWidth').text(`Scale Width: ${progOuterWidth}`);
+        $('#infoTotalRecords').text(`Total Records ${totalRecords}`);
         updateChartButtonsState(progInfo);
     }
 });
@@ -171,16 +175,18 @@ const flashIndicator = (elementIdStringIn) => {
 
 let lastDate = '';
 const buildTimeAxis = (timeAxisIn) => {
+// TODO: Date tick only when day changes and is a different color.
+
     let timeArray = [];
     let index = 0;
     timeAxisIn.forEach(tObj => {
         if ((lastDate !== tObj.date) || !index) {
             lastDate = tObj.date;
-            timeArray.push([tObj.date,tObj.time]);
+            timeArray.push([tObj.date,tObj.time, tObj.id]);
             
         } else {
             // else push TIME only
-            timeArray.push(tObj.time);
+            timeArray.push([tObj.time, tObj.id]);
         }
         index++;
     });

@@ -1,4 +1,3 @@
-const { query } = require('express');
 const path = require('path');
 const notifier = require('../js/notifier');
 
@@ -13,8 +12,9 @@ const myDeviceName = 'shedDB';
 const LIMIT_DEFAULT_VALUE = 60;
 let get_limit = LIMIT_DEFAULT_VALUE;
 let totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
-
+// NOTE: Truth
 let rangeStart = totalRecords - get_limit;
+console.log(`${myDeviceName}: INITIALIZING: totalRecords: ${totalRecords}, get_limit: ${get_limit}. rangeStart: ${rangeStart}`)
 
 // Min/Max datapoints to fetch from database //
 const MAX_LIMIT = 200;
@@ -50,6 +50,9 @@ const insertData = (dataIn) => {
 
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO temp_samples (outside_temp, pipe_temp, shed_temp, date_stamp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
     insertIntoTableCmd.run(outside.temp, pipe.temp, shed.temp, date_obj.date, date_obj.time);
+    
+    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+
     runQuery().then((queryResult) => {
         notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
     });
@@ -60,25 +63,25 @@ const runQuery = async () => {
     let p = [];
     let s = [];
     let ts = [];
-    let resultCount = undefined;
+    let resultTemps = undefined;
 
-    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+    // NOTE: Truth IF rangeStart is truth
+    const rangeEnd = rangeStart + get_limit;
+    const prepareString = `SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) \
+    WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
+    resultTemps = shedDB.prepare(prepareString).all();
 
-    const isRangeQuery = true;
-    if (isRangeQuery) {
-        const rangeEnd = rangeStart + get_limit;
-        const prepareString = ` SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
-        resultCount = shedDB.prepare(prepareString).all();
-    } else {
-        resultCount = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${get_limit}) ORDER BY id ASC;`).all();
-    }
-        
-    const tempsLen = resultCount.length;
+    const tempsLen = resultTemps.length;
     for (let i = 0; i < tempsLen; i++ ) {
-        o.push(resultCount[i].outside_temp);
-        p.push(resultCount[i].pipe_temp);
-        s.push(resultCount[i].shed_temp);
-        ts.push({'date': resultCount[i].date_stamp, 'time': resultCount[i].time_stamp});
+        o.push(resultTemps[i].outside_temp);
+        p.push(resultTemps[i].pipe_temp);
+        s.push(resultTemps[i].shed_temp);
+        ts.push(
+            {
+                'id': resultTemps[i].id,
+                'date': resultTemps[i].date_stamp, 
+                'time': resultTemps[i].time_stamp
+            });
     };
 
     allTemps = {
@@ -139,10 +142,10 @@ notifier.on('server_sends_message', (dataIn) => {
         console.log(`${myDeviceName}: on.server_sends_message: ${message}, data: ${data}`);
         switch(message) {
             case 'scrollLeft':
+                // FIXME: Truth ONLY if scrolling is true 
                 rangeStart = (rangeStart >= 0) ? (rangeStart -= get_limit) : 0;
             break;
             case 'scrollRight':
-                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
                 rangeStart = (rangeStart <= (totalRecords - get_limit)) ? (rangeStart += get_limit) : (totalRecords - get_limit);
             break;
             case 'zoomIn':
@@ -153,7 +156,6 @@ notifier.on('server_sends_message', (dataIn) => {
             break;
             case 'zoomReset':
                 get_limit = LIMIT_DEFAULT_VALUE;
-                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
                 rangeStart = totalRecords - get_limit;
             break;
         }

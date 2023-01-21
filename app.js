@@ -44,10 +44,15 @@ app.get('/', (req,res) => {
   notifier.on('sensors_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
     if(message === 'temp_update') {
-        // Message for shedDB ADD CURRENT SAMPLE ONLY //
+        /* Bounce message for shedDB to ADD CURRENT SAMPLE ONLY. shedDB will send
+           a 'temp_samples_ready' message after data has been stored and another set
+           of arrays is prepared for the Graph.
+        */
         notifier.emit('server_sends_message', {'message': 'add_temp_samples', 'data': data})
+        // Sending to directly to index to update Cards and Timestamp //
         io.emit('server_sends_message', {'message': 'temp_update', 'data': data});
     } else if (message === 'sampling_start') {
+        // Sensor module is just letting the world know that its scan pump is working. //
         io.emit('server_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
     
     } else if (message === 'get_last_record') {
@@ -63,7 +68,7 @@ app.get('/', (req,res) => {
   notifier.on('shedDB_sends_message', (dataIn) => {
     ({ message, data } = dataIn)
     if(message === 'temp_samples_ready') {
-        // Bounce the message and data.  Target recient(s): index.html //
+        // Bounce the message and data.  Target recipient(s): index.html //
         io.emit('server_sends_message', {'message': 'temp_samples_ready', 'data': data});
     } else if (message === 'min_max_ready') {
         // Bounce the message and data.  Target recient(s): index.html //
@@ -71,7 +76,9 @@ app.get('/', (req,res) => {
     } else if (message === 'last_record_ready') {
         notifier.emit('server_sends_message', {'message': 'last_record_ready', 'data': data});
     } else if (message === 'indicator_data_ready') {
-        io.emit('server_sends_message', {'message': message, 'data': data});
+        console.log(`${myDeviceName}: on.indicator_data_ready: message: ${message}, data:`);
+        console.log(data);
+        io.emit('server_sends_message', {'message': 'indicator_data_ready', 'data': data});
     }
   });
 

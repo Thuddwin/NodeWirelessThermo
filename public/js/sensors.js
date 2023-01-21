@@ -107,7 +107,7 @@ const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
         pumpEngine(lastRecordIn, recurseCounter, initializing);
     } else if (isMisfired && !recurseCounter) {
         // Give up. It has been RECURSE_MAX attempts. A sensor, or sensors, is malfunctioning.
-        // Message to server will be sent at the very end of this module.  The server will throw the 
+        // Message to server will be sent at the end of this module.  The server will throw the 
         // error.
         console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Ignoring this sample.`);
         sensor_malfunction = true;
@@ -141,6 +141,7 @@ const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
     if (!sensor_malfunction) {
         notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
     } else {
+        // Have Server throw error. //
         notifier.emit('sensors_sends_message', {'message': 'sensor_malfunction', 'data': isMisfiredObj.name});
     }
 }
