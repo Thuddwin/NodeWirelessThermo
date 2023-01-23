@@ -87,10 +87,8 @@ socket.on('server_sends_message', (dataIn) => {
         if (!isMinMaxForMe) { return; }
         isMinMaxForMe = false;
         ({min, max} = data)
-        $('#loDate').text(min.date_stamp);
-        $('#loTime').text(min.time_stamp);
-        $('#hiDate').text(max.date_stamp);
-        $('#hiTime').text(max.time_stamp);
+        $('#loDate').text(`${min.date_stamp} ${min.time_stamp}`);
+        $('#hiDate').text(`${max.date_stamp} ${max.time_stamp}`);
         $('#outsideLo').text(min.outside_temp);
         $('#outsideHi').text(max.outside_temp);
         $('#pipeLo').text(min.pipe_temp);
