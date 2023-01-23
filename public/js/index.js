@@ -136,11 +136,13 @@ socket.on('server_sends_message', (dataIn) => {
         console.log(progInfo);
         $('#infoDataPoints').text(`Data Points: ${dataWidth}`);
     } else if (message === 'button_states_ready') {
+        console.log(`${myDeviceName}:on.button_state_ready: data:`);
+        console.log(data);
         ({DenbScrollLeft, DenbScrollRight, DenbZoomIn, DenbZoomOut} = data)
-        $('#scrollLeft').prop('disable', DenbScrollLeft);
-        $('#scrollRight').prop('disable', DenbScrollRight);
-        $('#zoomIn').prop('disable', DenbZoomIn);
-        $('#zoomOut').prop('disable', DenbZoomOut);
+        $('#scrollLeft').prop('disabled', DenbScrollLeft);
+        $('#scrollRight').prop('disabled', DenbScrollRight);
+        $('#zoomIn').prop('disabled', DenbZoomIn);
+        $('#zoomOut').prop('disabled', DenbZoomOut);
     }
 });
 

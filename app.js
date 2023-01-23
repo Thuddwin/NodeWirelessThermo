@@ -10,7 +10,6 @@ const io = require('socket.io')(http);
 const PORT = 4000;
 const myDeviceName = 'app.js'
 const tempSensors = require('./public/js/sensors');
-const { info } = require('console');
 const tStamp = Date.now();
 
 app.use(express.static('public'));
@@ -76,10 +75,10 @@ app.get('/', (req,res) => {
     } else if (message === 'last_record_ready') {
         notifier.emit('server_sends_message', {'message': 'last_record_ready', 'data': data});
     } else if (message === 'indicator_data_ready') {
-        console.log(`${myDeviceName}: on.indicator_data_ready: message: ${message}, data:`);
-        console.log(data);
         io.emit('server_sends_message', {'message': 'indicator_data_ready', 'data': data});
-    } else if (message === 'button_states_ready', {'message': 'button_states_ready', 'data': data});
+    } else if (message === 'button_states_ready') {
+        io.emit('server_sends_message', {'message': 'button_states_ready', 'data': data}); 
+    }
   });
 
 
