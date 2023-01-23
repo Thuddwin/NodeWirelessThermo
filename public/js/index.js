@@ -53,8 +53,11 @@ socket.on('connect', () => {
 
 socket.on('server_sends_message', (dataIn) => {
     ({ message, data } = dataIn);
-    // Current temps only. //
     if(message === 'temp_update') {
+        /* Card and Timestamp single data points only coming directly from 
+        the Sensor Module after crossing 5 degree threshold.
+        Does NOT update the Graph. Is NOT array data. */
+        
         flashIndicator(UPDATE_INDICATOR);
         ({ time_stamp, outside, pipe, shed } = data);
         ({ date_obj } = time_stamp);
@@ -67,12 +70,10 @@ socket.on('server_sends_message', (dataIn) => {
         // SHED
         $('#shedCurrentElem').text(`${shed.temp}`);
     } else if (message === 'temp_samples_ready') {
+        flashIndicator(UPDATE_INDICATOR);
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
-        flashIndicator(UPDATE_INDICATOR)
         $('#titleSample').text(`Total Samples: ${sample_count}`);
-        // Data comes in as: {[outside], [pipe], [shed], [{time_stamp:date, time}]},
-        // so will need to massage time_stamp before stuffing it into the graph.
-        // Plan: Date tick only when day changes and is a different color.
+
         const xAxis = buildTimeAxis(time_stamp);
 
         chrt.data.datasets[0].data = outside;
@@ -81,9 +82,6 @@ socket.on('server_sends_message', (dataIn) => {
         chrt.data.labels = xAxis;
         chrt.update();
         //////////////////////////////////////////////////////////////////////
-        
-        // TODO: below...
-        // updateChartButtonsState({'dataPoints': chrt.data.datasets});
 
     } else if (message === 'min_max_temps_ready') {
         if (!isMinMaxForMe) { return; }
@@ -114,7 +112,7 @@ socket.on('server_sends_message', (dataIn) => {
         let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
         errorModal.show();
     } else if (message === 'indicator_data_ready') {
-        ({totalRecords, startIndex, dataWidth} = data)
+        ({totalRecords, startIndex, dataWidth, buttonStates} = data)
         console.log(`${myDeviceName}:on.indicator_data_ready...`)
         console.log(`${myDeviceName}: on.indicator_data_ready: data:`)
         console.log(`totalRecords: ${totalRecords}, startIndex: ${startIndex}, dataWidth: ${dataWidth}`);
@@ -122,10 +120,10 @@ socket.on('server_sends_message', (dataIn) => {
         const progBarPosition = $('#progBar').position();
         const dataPoint = progOuterWidth / totalRecords; console.log(`Calculated dataPoint = ${dataPoint}.`);
         
-        const progBarWidth = dataPoint * dataWidth;
+        const progBarWidth = Math.round(dataPoint * dataWidth);
         $('#progBar').width(progBarWidth);
         
-        const progBarOffset = startIndex * dataPoint;
+        const progBarOffset = Math.round(startIndex * dataPoint);
         $('#progBar').offset({left: progBarOffset, top: progBarPosition.top});
         
         const progInfo = {
@@ -134,7 +132,17 @@ socket.on('server_sends_message', (dataIn) => {
             progBarOffset: progBarOffset,
             progOuterWidth: progOuterWidth
         };
-        updateChartButtonsState(progInfo);
+        console.log('PROGINFO:');
+        console.log(progInfo);
+        $('#infoDataPoints').text(`Data Points: ${dataWidth}`);
+    } else if (message === 'button_states_ready') {
+        console.log(`${myDeviceName}:on.button_state_ready: data:`);
+        console.log(data);
+        ({DenbScrollLeft, DenbScrollRight, DenbZoomIn, DenbZoomOut} = data)
+        $('#scrollLeft').prop('disabled', DenbScrollLeft);
+        $('#scrollRight').prop('disabled', DenbScrollRight);
+        $('#zoomIn').prop('disabled', DenbZoomIn);
+        $('#zoomOut').prop('disabled', DenbZoomOut);
     }
 });
 
@@ -150,37 +158,26 @@ $('.graphFillToggle').on('click', (cardIn) => {
     chrt.update();
 });
 
-const updateChartButtonsState = (dataIn) => {
-    ({totalRecords, progBarWidth, progBarOffset, progOuterWidth} = dataIn)
-    console.log(`${myDeviceName}: updateChartButtonsState(): dataIn`);
-    console.log(dataIn);
-    const isDEnbScrollLeft = (progBarOffset < progBarWidth) ? true : false;
-    const isDEnbScrollRight = (Math.abs(progOuterWidth - (progBarOffset + progBarWidth)) < progBarWidth) ? true : false;
-    const isDEnbZoomIn = (progBarWidth <= 10) ? true : false;
-    const isDEnbZoomOut = ((progBarWidth >= 200) || (progBarWidth >= totalRecords)) ? true : false;
-    $('#scrollLeft').prop('disabled', isDEnbScrollLeft);
-    $('#scrollRight').prop('disabled', isDEnbScrollRight);
-    $('#zoomIn').prop('disabled', isDEnbZoomIn);
-    $('#zoomOut').prop('disabled', isDEnbZoomOut);
-};
-
 const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);
     $(elementIdStringIn).fadeOut(1500);
 }
 
+// FIXME: Why isn't this taken care of in shedDB first????
 let lastDate = '';
 const buildTimeAxis = (timeAxisIn) => {
+// TODO: Date tick only when day changes and is a different color.
+
     let timeArray = [];
     let index = 0;
     timeAxisIn.forEach(tObj => {
         if ((lastDate !== tObj.date) || !index) {
             lastDate = tObj.date;
-            timeArray.push([tObj.date,tObj.time]);
+            timeArray.push([tObj.date,tObj.time, tObj.id]);
             
         } else {
             // else push TIME only
-            timeArray.push(tObj.time);
+            timeArray.push([tObj.time, tObj.id]);
         }
         index++;
     });

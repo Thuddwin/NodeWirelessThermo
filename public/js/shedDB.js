@@ -1,4 +1,3 @@
-const { query } = require('express');
 const path = require('path');
 const notifier = require('../js/notifier');
 
@@ -10,11 +9,15 @@ const myDeviceName = 'shedDB';
 // NOTE: The following data items are in this module because
 //       they 'shape' the data to be retrieved even though they
 //       look like they should be handled elsewhere.
-const LIMIT_DEFAULT_VALUE = 60;
-let get_limit = LIMIT_DEFAULT_VALUE;
+const DATA_WIDTH_DEFAULT_VALUE = 60;
+let data_width = DATA_WIDTH_DEFAULT_VALUE;
+let index_multiplier = 1; /* How many 'data_widths' into the totalRecords we are. */
 let totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
-
-let rangeStart = totalRecords - get_limit;
+let DenbScrollLeft = false;
+let DenbScrollRight = true;
+let DenbZoomIn = false;
+let DenbZoomOut = false;
+let rangeStart = totalRecords - (data_width * index_multiplier);
 
 // Min/Max datapoints to fetch from database //
 const MAX_LIMIT = 200;
@@ -50,6 +53,10 @@ const insertData = (dataIn) => {
 
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO temp_samples (outside_temp, pipe_temp, shed_temp, date_stamp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
     insertIntoTableCmd.run(outside.temp, pipe.temp, shed.temp, date_obj.date, date_obj.time);
+
+    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+    rangeStart = totalRecords - (data_width * index_multiplier);
+
     runQuery().then((queryResult) => {
         notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
     });
@@ -60,25 +67,25 @@ const runQuery = async () => {
     let p = [];
     let s = [];
     let ts = [];
-    let resultCount = undefined;
+    let resultTemps = undefined;
 
-    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+    // NOTE: Truth IF rangeStart is truth. BROKEN HERE: Rangestart isn't being updated...
+    const rangeEnd = rangeStart + data_width;
+    const prepareString = `SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) \
+    WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
+    resultTemps = shedDB.prepare(prepareString).all();
 
-    const isRangeQuery = true;
-    if (isRangeQuery) {
-        const rangeEnd = rangeStart + get_limit;
-        const prepareString = ` SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
-        resultCount = shedDB.prepare(prepareString).all();
-    } else {
-        resultCount = shedDB.prepare(`SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC LIMIT ${get_limit}) ORDER BY id ASC;`).all();
-    }
-        
-    const tempsLen = resultCount.length;
+    const tempsLen = resultTemps.length;
     for (let i = 0; i < tempsLen; i++ ) {
-        o.push(resultCount[i].outside_temp);
-        p.push(resultCount[i].pipe_temp);
-        s.push(resultCount[i].shed_temp);
-        ts.push({'date': resultCount[i].date_stamp, 'time': resultCount[i].time_stamp});
+        o.push(resultTemps[i].outside_temp);
+        p.push(resultTemps[i].pipe_temp);
+        s.push(resultTemps[i].shed_temp);
+        ts.push(
+            {
+                'id': resultTemps[i].id,
+                'date': resultTemps[i].date_stamp, 
+                'time': resultTemps[i].time_stamp
+            });
     };
 
     allTemps = {
@@ -123,9 +130,16 @@ notifier.on('server_sends_message', (dataIn) => {
             const indicatorData = {
                 'totalRecords': totalRecords,
                 'startIndex': rangeStart,
-                'dataWidth': get_limit
-            }
+                'dataWidth': data_width
+            };
+            const buttonStates = {
+                'DenbScrollLeft': DenbScrollLeft,
+                'DenbScrollRight': DenbScrollRight,
+                'DenbZoomIn': DenbZoomIn,
+                'DenbZoomOut': DenbZoomOut
+            };
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
+            notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
         });
     } else if (message === 'get_min_max') {
         getMinMaxPipeTemps().then((queryResult) => {
@@ -136,36 +150,50 @@ notifier.on('server_sends_message', (dataIn) => {
             notifier.emit('shedDB_sends_message', {'message': 'last_record_ready', 'data': lastRecord[0]});
         });
     } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
-        console.log(`${myDeviceName}: on.server_sends_message: ${message}, data: ${data}`);
+        let max_data_widths = Math.round(totalRecords/data_width);
         switch(message) {
             case 'scrollLeft':
-                rangeStart = (rangeStart >= 0) ? (rangeStart -= get_limit) : 0;
+                index_multiplier = (index_multiplier < max_data_widths) ? ++index_multiplier : max_data_widths;
             break;
             case 'scrollRight':
-                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
-                rangeStart = (rangeStart <= (totalRecords - get_limit)) ? (rangeStart += get_limit) : (totalRecords - get_limit);
+                index_multiplier = (index_multiplier > 1) ? --index_multiplier : 1;
             break;
             case 'zoomIn':
-                get_limit = (get_limit > MIN_LIMIT) ? get_limit -= 10 : MIN_LIMIT;
+                data_width = (data_width > MIN_LIMIT) ? data_width -= 10 : MIN_LIMIT;
+
             break;
             case 'zoomOut':
-                get_limit = (get_limit < MAX_LIMIT) ? (get_limit += 10) : MAX_LIMIT;
+                data_width = (data_width < MAX_LIMIT) ? (data_width += 10) : MAX_LIMIT;
             break;
             case 'zoomReset':
-                get_limit = LIMIT_DEFAULT_VALUE;
-                totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
-                rangeStart = totalRecords - get_limit;
+                data_width = DATA_WIDTH_DEFAULT_VALUE;
+                index_multiplier = 1;
+                rangeStart = totalRecords - (data_width * index_multiplier);
+
             break;
         }
+        DenbScrollLeft = (index_multiplier === max_data_widths) ? true : false;
+        DenbScrollRight = (index_multiplier === 1) ? true : false;
+        DenbZoomIn = (data_width === MIN_LIMIT) ? true : false;
+        DenbZoomOut = (data_width === MAX_LIMIT) ? true : false;
+
+        rangeStart = totalRecords-(index_multiplier*data_width);
 
         runQuery().then((queryResult) => {
             const indicatorData = {
                 'totalRecords': totalRecords,
                 'startIndex': rangeStart,
-                'dataWidth': get_limit
+                'dataWidth': data_width
             };
+            const buttonStates = {
+                'DenbScrollLeft': DenbScrollLeft,
+                'DenbScrollRight': DenbScrollRight,
+                'DenbZoomIn': DenbZoomIn,
+                'DenbZoomOut': DenbZoomOut
+            }
             notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
+            notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
         });
     }
 })
