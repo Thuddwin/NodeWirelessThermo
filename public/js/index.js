@@ -112,7 +112,7 @@ socket.on('server_sends_message', (dataIn) => {
         let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
         errorModal.show();
     } else if (message === 'indicator_data_ready') {
-        ({totalRecords, startIndex, dataWidth} = data)
+        ({totalRecords, startIndex, dataWidth, buttonStates} = data)
         console.log(`${myDeviceName}:on.indicator_data_ready...`)
         console.log(`${myDeviceName}: on.indicator_data_ready: data:`)
         console.log(`totalRecords: ${totalRecords}, startIndex: ${startIndex}, dataWidth: ${dataWidth}`);
@@ -134,11 +134,13 @@ socket.on('server_sends_message', (dataIn) => {
         };
         console.log('PROGINFO:');
         console.log(progInfo);
-        $('#infoProgBarWidth').text(`Bar Width: ${progBarWidth}`);
-        $('#infoProgOffset').text(`Bar Offset: ${progBarOffset}`);
-        $('#infoProgOuterWidth').text(`Scale Width: ${progOuterWidth}`);
-        $('#infoTotalRecords').text(`Total Records ${totalRecords}`);
-        updateChartButtonsState(progInfo);
+        $('#infoDataPoints').text(`Data Points: ${dataWidth}`);
+    } else if (message === 'button_states_ready') {
+        ({DenbScrollLeft, DenbScrollRight, DenbZoomIn, DenbZoomOut} = data)
+        $('#scrollLeft').prop('disable', DenbScrollLeft);
+        $('#scrollRight').prop('disable', DenbScrollRight);
+        $('#zoomIn').prop('disable', DenbZoomIn);
+        $('#zoomOut').prop('disable', DenbZoomOut);
     }
 });
 
@@ -154,25 +156,12 @@ $('.graphFillToggle').on('click', (cardIn) => {
     chrt.update();
 });
 
-const updateChartButtonsState = (dataIn) => {
-    ({totalRecords, progBarWidth, progBarOffset, progOuterWidth} = dataIn)
-    console.log(`${myDeviceName}: updateChartButtonsState(): dataIn`);
-    console.log(dataIn);
-    const isDEnbScrollLeft = (progBarOffset < progBarWidth) ? true : false;
-    const isDEnbScrollRight = (Math.abs(progOuterWidth - (progBarOffset + progBarWidth)) < progBarWidth) ? true : false;
-    const isDEnbZoomIn = (progBarWidth <= 10) ? true : false;
-    const isDEnbZoomOut = ((progBarWidth >= 200) || (progBarWidth >= totalRecords)) ? true : false;
-    $('#scrollLeft').prop('disabled', isDEnbScrollLeft);
-    $('#scrollRight').prop('disabled', isDEnbScrollRight);
-    $('#zoomIn').prop('disabled', isDEnbZoomIn);
-    $('#zoomOut').prop('disabled', isDEnbZoomOut);
-};
-
 const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);
     $(elementIdStringIn).fadeOut(1500);
 }
 
+// FIXME: Why isn't this taken care of in shedDB first????
 let lastDate = '';
 const buildTimeAxis = (timeAxisIn) => {
 // TODO: Date tick only when day changes and is a different color.

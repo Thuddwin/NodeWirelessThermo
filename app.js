@@ -79,7 +79,7 @@ app.get('/', (req,res) => {
         console.log(`${myDeviceName}: on.indicator_data_ready: message: ${message}, data:`);
         console.log(data);
         io.emit('server_sends_message', {'message': 'indicator_data_ready', 'data': data});
-    }
+    } else if (message === 'button_states_ready', {'message': 'button_states_ready', 'data': data});
   });
 
 

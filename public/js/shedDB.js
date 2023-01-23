@@ -9,12 +9,16 @@ const myDeviceName = 'shedDB';
 // NOTE: The following data items are in this module because
 //       they 'shape' the data to be retrieved even though they
 //       look like they should be handled elsewhere.
-const LIMIT_DEFAULT_VALUE = 60;
-let get_limit = LIMIT_DEFAULT_VALUE;
+const DATA_WIDTH_DEFAULT_VALUE = 60;
+let data_width = DATA_WIDTH_DEFAULT_VALUE;
+let index_multiplier = 1; /* How many 'data_widths' into the totalRecords we are. */
 let totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
-// NOTE: Truth
-let rangeStart = totalRecords - get_limit;
-console.log(`${myDeviceName}: INITIALIZING: totalRecords: ${totalRecords}, get_limit: ${get_limit}. rangeStart: ${rangeStart}`)
+let DenbScrollLeft = true;
+let DenbScrollRight = false;
+let DenbZoomIn = true;
+let DenbZoomOut = true;
+let rangeStart = totalRecords - (data_width * index_multiplier);
+console.log(`${myDeviceName}: INITIALIZING: totalRecords: ${totalRecords} - (data_width: ${data_width} * index_multiplier: ${index_multiplier} = rangeStart: ${rangeStart}`);
 
 // Min/Max datapoints to fetch from database //
 const MAX_LIMIT = 200;
@@ -50,8 +54,9 @@ const insertData = (dataIn) => {
 
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO temp_samples (outside_temp, pipe_temp, shed_temp, date_stamp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
     insertIntoTableCmd.run(outside.temp, pipe.temp, shed.temp, date_obj.date, date_obj.time);
-    
+
     totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+    rangeStart = totalRecords - (data_width * index_multiplier);
 
     runQuery().then((queryResult) => {
         notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
@@ -65,8 +70,8 @@ const runQuery = async () => {
     let ts = [];
     let resultTemps = undefined;
 
-    // NOTE: Truth IF rangeStart is truth
-    const rangeEnd = rangeStart + get_limit;
+    // NOTE: Truth IF rangeStart is truth. BROKEN HERE: Rangestart isn't being updated...
+    const rangeEnd = rangeStart + data_width;
     const prepareString = `SELECT * FROM (SELECT * FROM temp_samples ORDER BY id DESC) \
     WHERE id >= ${rangeStart} AND id <= ${rangeEnd} ORDER BY id ASC;`;
     resultTemps = shedDB.prepare(prepareString).all();
@@ -126,7 +131,7 @@ notifier.on('server_sends_message', (dataIn) => {
             const indicatorData = {
                 'totalRecords': totalRecords,
                 'startIndex': rangeStart,
-                'dataWidth': get_limit
+                'dataWidth': data_width
             }
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
         });
@@ -140,34 +145,48 @@ notifier.on('server_sends_message', (dataIn) => {
         });
     } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
         console.log(`${myDeviceName}: on.server_sends_message: ${message}, data: ${data}`);
+        let max_data_widths = Math.round(totalRecords/data_width);
         switch(message) {
             case 'scrollLeft':
-                // FIXME: Truth ONLY if scrolling is true 
-                rangeStart = (rangeStart >= 0) ? (rangeStart -= get_limit) : 0;
+                index_multiplier = (index_multiplier < max_data_widths) ? ++index_multiplier : max_data_widths;
+                DenbScrollLeft = (index_multiplier === max_data_widths) ? true : false;
             break;
             case 'scrollRight':
-                rangeStart = (rangeStart <= (totalRecords - get_limit)) ? (rangeStart += get_limit) : (totalRecords - get_limit);
+                index_multiplier = (index_multiplier > 1) ? --index_multiplier : 1;
+                DenbScrollRight = (index_multiplier === 1) ? true : false;
             break;
             case 'zoomIn':
-                get_limit = (get_limit > MIN_LIMIT) ? get_limit -= 10 : MIN_LIMIT;
+                data_width = (data_width > MIN_LIMIT) ? data_width -= 10 : MIN_LIMIT;
+                DenbZoomIn = (data_width === MIN_LIMIT) ? true : false;
             break;
             case 'zoomOut':
-                get_limit = (get_limit < MAX_LIMIT) ? (get_limit += 10) : MAX_LIMIT;
+                data_width = (data_width < MAX_LIMIT) ? (data_width += 10) : MAX_LIMIT;
+                DenbZoomOut = (data_width === MAX_LIMIT) ? true : false;
             break;
             case 'zoomReset':
-                get_limit = LIMIT_DEFAULT_VALUE;
-                rangeStart = totalRecords - get_limit;
+                data_width = DATA_WIDTH_DEFAULT_VALUE;
+                index_multiplier = 1;
+                rangeStart = totalRecords - (data_width * index_multiplier);
             break;
         }
+        rangeStart = totalRecords-(index_multiplier*data_width);
+        console.log(`${myDeviceName}: RANGESTART: ${rangeStart}.`);
 
         runQuery().then((queryResult) => {
             const indicatorData = {
                 'totalRecords': totalRecords,
                 'startIndex': rangeStart,
-                'dataWidth': get_limit
+                'dataWidth': data_width
             };
+            const buttonStates = {
+                'DenbScrollLeft': DenbScrollLeft,
+                'DenbScrollRight': DenbScrollRight,
+                'DenbZoomIn': DenbZoomIn,
+                'DenbZoomOut': DenbZoomOut
+            }
             notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
+            notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
         });
     }
 })
