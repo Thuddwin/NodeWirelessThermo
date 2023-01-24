@@ -28,7 +28,6 @@ let dataPoints = MAX_DATA_POINTS - zoomFactor;
 // Assign button events for Chart Scroll, Reset, Zoom.
 $('.chartDataViews').on('click', (eventIn) => {
     const btnId = eventIn.target.id;
-    console.log(`${btnId} was clicked! socket.emit...`);
     socket.emit('index_sends_message', {'message': `${btnId}`, 'data': 'NO DATA'});
 });
 
@@ -48,7 +47,7 @@ $("#minMaxModalColThree").text(SENSOR_3);
 $('#minMaxModalLabel').text(`Highest/Lowest Temps Based On ${PRIMARY_SENSOR} Sensor.`)
 
 socket.on('connect', () => {
-    console.log('CONNEDCTED!');
+    console.log('CONNECTED!');
 });
 
 socket.on('server_sends_message', (dataIn) => {
@@ -74,12 +73,10 @@ socket.on('server_sends_message', (dataIn) => {
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
         $('#titleSample').text(`Total Samples: ${sample_count}`);
 
-        const xAxis = buildTimeAxis(time_stamp);
-
         chrt.data.datasets[0].data = outside;
         chrt.data.datasets[1].data = pipe;
         chrt.data.datasets[2].data = shed;
-        chrt.data.labels = xAxis;
+        chrt.data.labels = time_stamp;
         chrt.update();
         //////////////////////////////////////////////////////////////////////
 
@@ -111,12 +108,9 @@ socket.on('server_sends_message', (dataIn) => {
         errorModal.show();
     } else if (message === 'indicator_data_ready') {
         ({totalRecords, startIndex, dataWidth, buttonStates} = data)
-        console.log(`${myDeviceName}:on.indicator_data_ready...`)
-        console.log(`${myDeviceName}: on.indicator_data_ready: data:`)
-        console.log(`totalRecords: ${totalRecords}, startIndex: ${startIndex}, dataWidth: ${dataWidth}`);
         const progOuterWidth = $('#progOuter').width();
         const progBarPosition = $('#progBar').position();
-        const dataPoint = progOuterWidth / totalRecords; console.log(`Calculated dataPoint = ${dataPoint}.`);
+        const dataPoint = progOuterWidth / totalRecords;
         
         const progBarWidth = Math.round(dataPoint * dataWidth);
         $('#progBar').width(progBarWidth);
@@ -130,12 +124,8 @@ socket.on('server_sends_message', (dataIn) => {
             progBarOffset: progBarOffset,
             progOuterWidth: progOuterWidth
         };
-        console.log('PROGINFO:');
-        console.log(progInfo);
         $('#infoDataPoints').text(`Data Points: ${dataWidth}`);
     } else if (message === 'button_states_ready') {
-        console.log(`${myDeviceName}:on.button_state_ready: data:`);
-        console.log(data);
         ({DenbScrollLeft, DenbScrollRight, DenbZoomIn, DenbZoomOut} = data)
         $('#scrollLeft').prop('disabled', DenbScrollLeft);
         $('#scrollRight').prop('disabled', DenbScrollRight);
@@ -160,25 +150,3 @@ const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);
     $(elementIdStringIn).fadeOut(1500);
 }
-
-// FIXME: Why isn't this taken care of in shedDB first????
-let lastDate = '';
-const buildTimeAxis = (timeAxisIn) => {
-// TODO: Date tick only when day changes and is a different color.
-
-    let timeArray = [];
-    let index = 0;
-    timeAxisIn.forEach(tObj => {
-        if ((lastDate !== tObj.date) || !index) {
-            lastDate = tObj.date;
-            timeArray.push([tObj.date,tObj.time, tObj.id]);
-            
-        } else {
-            // else push TIME only
-            timeArray.push([tObj.time, tObj.id]);
-        }
-        index++;
-    });
-    
-    return timeArray;
-};

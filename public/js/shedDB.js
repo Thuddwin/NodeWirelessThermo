@@ -23,6 +23,22 @@ let rangeStart = totalRecords - (data_width * index_multiplier);
 const MAX_LIMIT = 200;
 const MIN_LIMIT = 10;
 
+const buildTimeAxis = (timeAxisIn) => {
+    let lastDate = 'EMPTY STRING';
+    let timeArray = [];
+    timeAxisIn.forEach(tObj => {
+        if ((lastDate !== tObj.date)) {
+            lastDate = tObj.date;
+            timeArray.push([tObj.date,tObj.time, tObj.id]);
+            
+        } else {
+            // else push TIME only
+            timeArray.push([tObj.time, tObj.id]);
+        }
+    });
+    
+    return timeArray;
+};
 const createTables = () => {
     // id = key, sensor_name = OUTSIDE, PIPE, SHED, 
     // temp = temperature at sensor_name,
@@ -43,7 +59,7 @@ const insertData = (dataIn) => {
     ({ time_stamp, outside, pipe, shed } = dataIn);
     ({ date_obj } = time_stamp);
     if ( !(outside && pipe && shed) ) {
-        console.log(`${myDeviceName}: insertDate(): ERROR: NULL or UNDEFINED data attempted insert into temp_samples. Ignoring.`);
+        console.log(`${myDeviceName}: insertData(): ERROR: NULL or UNDEFINED data attempted insert into temp_samples. Ignoring.`);
         console.log(`${myDeviceName}: >>>> outside: ${outside.temp}`);
         console.log(`${myDeviceName}: >>>> pipe: ${pipe.temp}`);
         console.log(`${myDeviceName}: >>>> shed: ${shed.temp}`);
@@ -88,11 +104,12 @@ const runQuery = async () => {
             });
     };
 
+    const adjustedTimestamp = buildTimeAxis(ts);
     allTemps = {
         'outside': o,
         'pipe': p,
         'shed': s,
-        'time_stamp': ts,
+        'time_stamp': adjustedTimestamp,
         'sample_count': totalRecords
     };
 

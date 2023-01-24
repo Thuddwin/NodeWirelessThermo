@@ -78,16 +78,18 @@
                         display: true
                     },
                     grid: {
-                        color: 'gray'
+                        color:  (val) => {
+                            if (val.tick.label.length === 3) { return 'rgba(57, 241, 242, 1)'; }
+                            return 'gray';
+                        }
                     },
                     ticks: {
                         color: (val) => {
-                            console.log(`${myDeviceName}: val in:`);
-                            console.log(val);
                             if (val.tick.label.length === 3) { return 'rgba(57, 241, 242, 1)'; }
-                            return 'white'
+                            return 'white';
                         },
-                        fontSize: 16
+                        fontSize: 16,
+                        autoSkip: true
                     }
                 },
                 y: {
@@ -109,5 +111,3 @@
     };
 
     const chrt = new Chart(chartContext, chartOptions);
-
-    console.log(chrt)
