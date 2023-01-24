@@ -9,6 +9,12 @@
     const canvas = document.getElementById('canvas');
     const chartContext = canvas.getContext('2d');
 
+    const colorOneXTick = (tickArrayIn) => {
+        const arrayLen = tickArrayIn.length;
+        if(arrayLen === 3) { return '#FF0000' }
+        return 'gray';
+    }
+
     const setGradient = (rgbaColorIn) => {
         ({r, g, b, a} = rgbaColorIn)
         let gradient = chartContext.createLinearGradient(0, 0, 0, 800);
@@ -75,7 +81,12 @@
                         color: 'gray'
                     },
                     ticks: {
-                        color: 'white',
+                        color: (val) => {
+                            console.log(`${myDeviceName}: val in:`);
+                            console.log(val);
+                            if (val.tick.label.length === 3) { return 'rgba(57, 241, 242, 1)'; }
+                            return 'white'
+                        },
                         fontSize: 16
                     }
                 },
