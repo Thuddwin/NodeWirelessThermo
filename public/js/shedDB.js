@@ -12,7 +12,7 @@ const myDeviceName = 'shedDB';
 const DATA_WIDTH_DEFAULT_VALUE = 60;
 let data_width = DATA_WIDTH_DEFAULT_VALUE;
 let index_multiplier = 1; /* How many 'data_widths' into the totalRecords we are. */
-let totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
+let totalRecords = 0;
 let DenbScrollLeft = false;
 let DenbScrollRight = true;
 let DenbZoomIn = false;
@@ -135,6 +135,7 @@ const getMinMaxPipeTemps = async () => {
 
 const initDB = async () => {
     createTables();
+    totalRecords = shedDB.prepare(`SELECT COUNT(*) AS sample_count FROM temp_samples;`).all()[0].sample_count;
 }
 
 notifier.on('server_sends_message', (dataIn) => {
