@@ -53,6 +53,16 @@ const createTables = () => {
             time_stamp text\
         );`
     );
+    shedDB.exec(`
+            CREATE TABLE IF NOT EXISTS errors (\
+            id INTEGER PRIMARY KEY AUTOINCREMENT, \
+            error_type text not null, \
+            outside_temp text not null, \
+            pipe_temp text not null, \
+            shed_temp text not null, \
+            time_stamp text\
+        );`
+    );
 }
 
 const insertData = (dataIn) => {
@@ -77,6 +87,14 @@ const insertData = (dataIn) => {
         notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
     });
 };
+
+const insertErrors = (dataIn) => {
+    ({error, sensor_data, time_stamp} = dataIn)
+    console.log(`${myDeviceName}: insertErrors(): dataIn:`);
+    console.log(dataIn);
+    const insertIntoTableCmd = shedDB.prepare(`INSERT INTO errors (error_type, outside_temp, pipe_temp, shed_temp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
+    insertIntoTableCmd.run(error, sensor_data[0].temp, sensor_data[1].temp, sensor_data[2].temp, time_stamp);
+}
 
 const runQuery = async () => {
     let o = [];
@@ -120,6 +138,12 @@ const getLastRecord = async () => {
     let lastRecord = shedDB.prepare('select * from temp_samples order by id desc limit 1;').all();
 
     return lastRecord;
+}
+
+const getAllErrors = async() => {
+    const getErrorsCmd = `SELECT * FROM errors;`;
+    const allErrors = shedDB.prepare(getErrorsCmd).all();
+    return allErrors;
 }
 
 const getMinMaxPipeTemps = async () => {
@@ -212,6 +236,12 @@ notifier.on('server_sends_message', (dataIn) => {
             notifier.emit('shedDB_sends_message', {'message': 'temp_samples_ready', 'data': queryResult});
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
             notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
+        });
+    } else if (message === 'error') {
+        insertErrors(data);
+    } else if (message === 'request_error_list') {
+        getAllErrors().then((results) => {
+            notifier.emit('shedDB_sends_message', {'message': 'error_list_ready', 'data': results});
         });
     }
 })

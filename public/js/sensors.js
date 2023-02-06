@@ -70,13 +70,15 @@ let checkForNullUndefined = (arrayIn) => {
         if (arrayIn[i].temp == null || arrayIn[i].temp === 'undefined') {
             result = true;
             failName = arrayIn[i].name;
+            arrayIn[i].temp = 'NULL'
             break;
         } 
     };
 
     const returnResult = {
         'result': result,
-        'name': failName || ''
+        'name': failName || '',
+        'data_set': arrayIn
     }
 
     return returnResult;
@@ -88,11 +90,12 @@ let outsideTemp = null;
 let pipeTemp = null;
 let shedTemp = null;
 let allTemps2 = [];
+let testCounter = 5;
 const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
     const recurseCounter = recursesRemaining - 1;
     allTemps2 = getAllTemperatures();
     outsideTemp =   allTemps2[0].t;   // REAL TEMP //
-    pipeTemp =      allTemps2[1].t;   // REAL TEMP //
+    pipeTemp =      (--testCounter) ? allTemps2[1].t : null;   // REAL TEMP //
     shedTemp =      allTemps2[2].t;   // REAL TEMP //
     console.log(`${myDeviceName}: pumpEngine():getAllTemperatures():result:`);
     console.log(allTemps2);
@@ -105,17 +108,28 @@ const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
     
     isMisfiredObj = checkForNullUndefined(checkArray);
     isMisfired = isMisfiredObj.result;
+    const date = new Date().toLocaleDateString();
+    const time = new Date().toLocaleTimeString();
+    let error_package  = {
+        'error': '',
+        'sensor_data': checkArray,
+        'time_stamp': `${date}-${time}`
+    }
 
     if (isMisfired && (recurseCounter >= 1)) {
         console.log(`${myDeviceName}: pumpEngine(): READINGS: outside: ${outsideTemp}, pipe: ${pipeTemp}, shed:${shedTemp}`)
         console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Trying again....`);
-        // RECURSIVE...
+        error_package.error = 'misfire';
+        notifier.emit('sensors_sends_message', {'message': 'error', 'data': error_package})
+        // RECURSE...
         pumpEngine(lastRecordIn, recurseCounter, initializing);
     } else if (isMisfired && !recurseCounter) {
         // Give up. It has been RECURSE_MAX attempts. A sensor, or sensors, is malfunctioning.
         // Message to server will be sent at the end of this module.  The server will decide what 
         // to do.
         console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Ignoring this sample.`);
+        error_package.error = 'give_up';
+        notifier.emit('sensors_sends_mesaage', {'message': 'error', 'data': error_package})
         sensor_malfunction = true;
     }
 
