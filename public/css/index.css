@@ -70,3 +70,10 @@ h1, h4 {
     padding: 0px;
     margin: 0px
 }
+
+.j {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}

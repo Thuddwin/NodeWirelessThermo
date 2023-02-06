@@ -131,6 +131,10 @@ socket.on('server_sends_message', (dataIn) => {
         $('#scrollRight').prop('disabled', DenbScrollRight);
         $('#zoomIn').prop('disabled', DenbZoomIn);
         $('#zoomOut').prop('disabled', DenbZoomOut);
+    } else if (message === 'error_list_ready') {
+        console.log(`${myDeviceName}:on.server_sends_message:error_list_ready:data:`);
+        console.log(data);
+        showErrors(data);
     }
 });
 
@@ -139,12 +143,50 @@ $('#minMaxButton').on('click', () => {
     socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
 });
 
+$('#showErrorsButton').on('click', () => {
+    socket.emit('index_sends_message', {'message': 'request_error_list', 'data': 'NO DATA'});
+})
+
 $('.graphFillToggle').on('click', (cardIn) => {
     const idIn = cardIn.target.id;
     let oneFillEnb = chrt.data.datasets[cardMap[idIn]].fill;
     chrt.data.datasets[cardMap[idIn]].fill = !oneFillEnb;
     chrt.update();
 });
+
+const showErrors = (dataIn) => {
+    console.log(`${myDeviceName}: showErrors(): dataIn:`);
+    console.log(dataIn);
+    $('#errorListContainer').empty();
+    let titleRow =
+        `<div class="row border"> \
+            <div class="col-3 border j">Date</div> \
+            <div class="col-1 border j">Id</div> \
+            <div class="col-2 border j">Error</div> \
+            <div class="col-2 border j">Outside</div> \
+            <div class="col-2 border j">Pipe</div> \
+            <div class="col-2 border j">Shed</div> \
+        </div>`;
+    $('#errorListContainer').append(titleRow);
+    dataIn.forEach((elem) => {
+        console.log('elem:');
+        console.log(elem);
+        const rowString = 
+            `<div class="row"> \
+                <div class="col-3 border j">${elem.time_stamp}</div> \
+                <div class="col-1 border j">${elem.id}</div> \
+                <div class="col-2 border j">${elem.error_type}</div> \
+                <div class="col-2 border j">${elem.outside_temp}</div> \
+                <div class="col-2 border j">${elem.pipe_temp}</div> \
+                <div class="col-2 border j">${elem.shed_temp}</div> \
+            </div>`;
+        $('#errorListContainer').append(rowString);
+    });
+
+    let errorListModal = new bootstrap.Modal(document.getElementById("errorListModal"), {});
+        errorListModal.show();
+
+}
 
 const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);

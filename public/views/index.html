@@ -21,44 +21,62 @@
 </head>
 <body>
   <!-- MODALS -->
-  <!-- Hi/Lo Modal -->
-  <div class="modal fade" id="minMaxModal" tabindex="-1" aria-labelledby="minMaxModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header flex-column">
-            <h5 class="modal-title">Temperatures Based On Outside Sensor Values</h5>
-            <h6 class="modal-title">Temperatures in F degrees</h6>
-        </div>
-        <div class="modal-body">
-            <div class="row text-center">
-                <div class="col-1 min-max-col bg-light border border-end p-0">L/H</div>
-                <div class="col-5 timestamp-col bg-light border p-0">Time Stamp</div>
-                <div class="col-2 card1 bg-info border p-0" id="minMaxModalColOne">---</div>
-                <div class="col-2 card2 bg-danger border p-0" id="minMaxModalColTwo">---</div>
-                <div class="col-2 card3 bg-light border p-0" id="minMaxModalColThree">---</div>
+  <!-- LIST ERROR -->
+  <!-- Scrollable modal -->
+  <div class="modal fade" id="errorListModal" tabindex="-1" aria-labelledby="errorListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header flex-column">
+                <h5 class="modal-title">Error List</h5>
             </div>
-            <div class="row text-center">
-                <div class="col-1">Lo</div>
-                <div class="col-5 label-col border p-0" id="loDate">---</div>
-                <div class="col-2 card1 bg-info border p-0" id="outsideLo">---</div>
-                <div class="col-2 card2 bg-danger border p-0" id="pipeLo">---</div>
-                <div class="col-2 card3 bg-light border p-0" id="shedLo">---</div>
+            <div class="modal-body" id="errorListContainer">
+                <!-- ERROR LIST HERE -->
             </div>
-            <div class="row text-center">
-                <div class="col-1">Hi</div>
-                <div class="col-5 label-col border p-0" id="hiDate">---</div>
-                <div class="col-2 card1 bg-info border p-0" id="outsideHi">---</div>
-                <div class="col-2 card2 bg-danger border p-0" id="pipeHi">---</div>
-                <div class="col-2 card3 bg-light border p-0" id="shedHi">---</div>
-            </div>
-        </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
+  <!-- Hi/Lo Modal -->
+    <div class="modal fade" id="minMaxModal" tabindex="-1" aria-labelledby="minMaxModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <h5 class="modal-title">Temperatures Based On Outside Sensor Values</h5>
+                    <h6 class="modal-title">Temperatures in F degrees</h6>
+                </div>
+                <div class="modal-body">
+                    <div class="row text-center">
+                        <div class="col-1 min-max-col bg-light border border-end p-0">L/H</div>
+                        <div class="col-5 timestamp-col bg-light border p-0">Time Stamp</div>
+                        <div class="col-2 card1 bg-info border p-0" id="minMaxModalColOne">---</div>
+                        <div class="col-2 card2 bg-danger border p-0" id="minMaxModalColTwo">---</div>
+                        <div class="col-2 card3 bg-light border p-0" id="minMaxModalColThree">---</div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-1">Lo</div>
+                        <div class="col-5 label-col border p-0" id="loDate">---</div>
+                        <div class="col-2 card1 bg-info border p-0" id="outsideLo">---</div>
+                        <div class="col-2 card2 bg-danger border p-0" id="pipeLo">---</div>
+                        <div class="col-2 card3 bg-light border p-0" id="shedLo">---</div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-1">Hi</div>
+                        <div class="col-5 label-col border p-0" id="hiDate">---</div>
+                        <div class="col-2 card1 bg-info border p-0" id="outsideHi">---</div>
+                        <div class="col-2 card2 bg-danger border p-0" id="pipeHi">---</div>
+                        <div class="col-2 card3 bg-light border p-0" id="shedHi">---</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
   <!-- Error Modal -->
   <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
@@ -214,6 +232,14 @@
                     </div>
                     <div class="col info bg-dark">
                         <p id="infoDataPoints">Data Points:</p>
+                    </div>
+                    <div class="col d-flex justify-content-evenly align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-sm"
+                            id="showErrorsButton">
+                            Show Errors
+                        </button>
                     </div>
                 </div>
             </div>

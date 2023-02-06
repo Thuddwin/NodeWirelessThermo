@@ -34,6 +34,8 @@ app.get('/', (req,res) => {
         } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
             // Notify shedDB.js
             notifier.emit('server_sends_message', {'message': message, 'data': data});
+        } else if (message === 'request_error_list') {
+            notifier.emit('server_sends_message', {'message': 'request_error_list', 'data': 'NO DATA'});
         }
       })
     });
@@ -60,6 +62,9 @@ app.get('/', (req,res) => {
         io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
         const errMsg = `${myDeviceName}: Sensor "${data}" is malfunctioning. Program halted. Service required.`;
         throw new Error(errMsg);
+    } else if (message === 'error') {
+        // Bounce out to shedDB (and others, if applicable).
+        notifier.emit('server_sends_message', {'message': 'error', 'data': data});
     }
   });
 
@@ -78,6 +83,8 @@ app.get('/', (req,res) => {
         io.emit('server_sends_message', {'message': 'indicator_data_ready', 'data': data});
     } else if (message === 'button_states_ready') {
         io.emit('server_sends_message', {'message': 'button_states_ready', 'data': data}); 
+    } else if (message === 'error_list_ready') {
+        io.emit('server_sends_message', {'message': 'error_list_ready', 'data': data});
     }
   });
 
