@@ -67,11 +67,10 @@ let checkForNullUndefined = (arrayIn) => {
     let failName = '';
     
     for (let i=0; i<arrayIn.length; i++ ) {
-        if (arrayIn[i].temp == null || arrayIn[i].temp === 'undefined') {
+        if (arrayIn[i].temp === null || arrayIn[i].temp === 'undefined') {
             result = true;
             failName = arrayIn[i].name;
             arrayIn[i].temp = 'NULL'
-            break;
         } 
     };
 

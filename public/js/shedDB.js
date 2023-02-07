@@ -163,7 +163,7 @@ const initDB = async () => {
 }
 
 notifier.on('server_sends_message', (dataIn) => {
-    ({ message, data } = dataIn);
+    ({ message, id, data } = dataIn);
     if( message == 'add_temp_samples') {
         insertData(data);
     } else if (message === 'run_query') {
@@ -180,12 +180,12 @@ notifier.on('server_sends_message', (dataIn) => {
                 'DenbZoomIn': DenbZoomIn,
                 'DenbZoomOut': DenbZoomOut
             };
-            notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
-            notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
+            notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'id': id, 'data': indicatorData});
+            notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'id': id, 'data': buttonStates});
         });
     } else if (message === 'get_min_max') {
         getMinMaxPipeTemps().then((queryResult) => {
-            notifier.emit('shedDB_sends_message', {'message': 'min_max_ready', 'data': queryResult});
+            notifier.emit('shedDB_sends_message', {'message': 'min_max_ready', 'id': id, 'data': queryResult});
         })
     } else if (message === 'get_last_record') {
         getLastRecord().then((lastRecord) => {
@@ -241,7 +241,7 @@ notifier.on('server_sends_message', (dataIn) => {
         insertErrors(data);
     } else if (message === 'request_error_list') {
         getAllErrors().then((results) => {
-            notifier.emit('shedDB_sends_message', {'message': 'error_list_ready', 'data': results});
+            notifier.emit('shedDB_sends_message', {'message': 'error_list_ready', 'id': id, 'data': results});
         });
     }
 })

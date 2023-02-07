@@ -23,19 +23,22 @@ app.get('/', (req,res) => {
     socket.emit('server_sends_message', {'message': 'send_id', 'data':'NO DATA'});
     
     socket.on('index_sends_message', (dataIn) => {
-        ({message, data} = dataIn)
+        ({message, id, data} = dataIn)
+        console.log(`${myDeviceName}:on.index_sends_message: id: ${id}`);
         if (message === 'my_id') {
             if (data === 'index') {
                 notifier.emit('server_sends_message', {'message': 'run_query', 'data': 'NO DATA'});
                 notifier.emit('server_sends_message', {'message': 'hit_pump_once', 'data': 'NO DATA'})
             }
         } else if (message === 'get_min_max') {
-            notifier.emit('server_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
+            // Notify shedDB.js
+            notifier.emit('server_sends_message', {'message': 'get_min_max', 'id': id, 'data': 'NO DATA'});
         } else if (['scrollLeft', 'zoomIn', 'zoomReset', 'zoomOut', 'scrollRight'].includes(message)) {
             // Notify shedDB.js
-            notifier.emit('server_sends_message', {'message': message, 'data': data});
+            notifier.emit('server_sends_message', {'message': message, 'id': id, 'data': data});
         } else if (message === 'request_error_list') {
-            notifier.emit('server_sends_message', {'message': 'request_error_list', 'data': 'NO DATA'});
+            // Notify shedDB.js
+            notifier.emit('server_sends_message', {'message': 'request_error_list', 'id': id, 'data': 'NO DATA'});
         }
       })
     });
@@ -70,21 +73,21 @@ app.get('/', (req,res) => {
 
   // SHEDDB SENT //
   notifier.on('shedDB_sends_message', (dataIn) => {
-    ({ message, data } = dataIn)
+    ({ message, id, data } = dataIn)
     if(message === 'temp_samples_ready') {
         // Bounce the message and data.  Target recipient(s): index.html //
-        io.emit('server_sends_message', {'message': 'temp_samples_ready', 'data': data});
+        io.emit('server_sends_message', {'message': 'temp_samples_ready', 'id': id, 'data': data});
     } else if (message === 'min_max_ready') {
         // Bounce the message and data.  Target recient(s): index.html //
-        io.emit('server_sends_message', {'message': 'min_max_temps_ready', 'data': data})
+        io.emit('server_sends_message', {'message': 'min_max_temps_ready', 'id': id, 'data': data})
     } else if (message === 'last_record_ready') {
         notifier.emit('server_sends_message', {'message': 'last_record_ready', 'data': data});
     } else if (message === 'indicator_data_ready') {
-        io.emit('server_sends_message', {'message': 'indicator_data_ready', 'data': data});
+        io.emit('server_sends_message', {'message': 'indicator_data_ready', 'id': id, 'data': data});
     } else if (message === 'button_states_ready') {
-        io.emit('server_sends_message', {'message': 'button_states_ready', 'data': data}); 
+        io.emit('server_sends_message', {'message': 'button_states_ready', 'id': id, 'data': data}); 
     } else if (message === 'error_list_ready') {
-        io.emit('server_sends_message', {'message': 'error_list_ready', 'data': data});
+        io.emit('server_sends_message', {'message': 'error_list_ready', 'id': id, 'data': data});
     }
   });
 

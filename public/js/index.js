@@ -1,4 +1,6 @@
 const myDeviceName = 'index';
+const myId = Math.round((Math.random() * 10000) + 100);
+console.log(`${myDeviceName}:${myId}`);
 const socket = io();
 
 const SAMPLE_INDICATOR ='#samplingIndicator';
@@ -28,7 +30,7 @@ let dataPoints = MAX_DATA_POINTS - zoomFactor;
 // Assign button events for Chart Scroll, Reset, Zoom.
 $('.chartDataViews').on('click', (eventIn) => {
     const btnId = eventIn.target.id;
-    socket.emit('index_sends_message', {'message': `${btnId}`, 'data': 'NO DATA'});
+    socket.emit('index_sends_message', {'message': `${btnId}`, 'id': myId, 'data': 'NO DATA'});
 });
 
 // Fill In Titles, Labels, etc... //
@@ -51,7 +53,7 @@ socket.on('connect', () => {
 });
 
 socket.on('server_sends_message', (dataIn) => {
-    ({ message, data } = dataIn);
+    ({ message, id, data } = dataIn);
     if(message === 'temp_update') {
         /* Card and Timestamp single data points only coming directly from 
         the Sensor Module after crossing 5 degree threshold.
@@ -81,7 +83,7 @@ socket.on('server_sends_message', (dataIn) => {
         //////////////////////////////////////////////////////////////////////
 
     } else if (message === 'min_max_temps_ready') {
-        if (!isMinMaxForMe) { return; }
+        if (myId !== id) { return; }
         isMinMaxForMe = false;
         ({min, max} = data)
         $('#loDate').text(`${min.date_stamp} ${min.time_stamp}`);
@@ -98,10 +100,11 @@ socket.on('server_sends_message', (dataIn) => {
         minMaxModal.show();
     
     } else if (message === 'send_id') {
-        socket.emit('index_sends_message', {'message': 'my_id', 'data': myDeviceName});
+        socket.emit('index_sends_message', {'message': 'my_id', 'id': myId, 'data': myDeviceName});
     } else if (message === 'sampling_start') {
         flashIndicator(SAMPLE_INDICATOR);
     } else if (message === 'sensor_malfunction') {
+        // if (myId !== id) { return; }
         // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
         $('#errorMessage').text(`"${data}" sensor is malfunctioning.`);
         let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
@@ -126,12 +129,14 @@ socket.on('server_sends_message', (dataIn) => {
         };
         $('#infoDataPoints').text(`Data Points: ${dataWidth}`);
     } else if (message === 'button_states_ready') {
+        if(myId !== id) { return; }
         ({DenbScrollLeft, DenbScrollRight, DenbZoomIn, DenbZoomOut} = data)
         $('#scrollLeft').prop('disabled', DenbScrollLeft);
         $('#scrollRight').prop('disabled', DenbScrollRight);
         $('#zoomIn').prop('disabled', DenbZoomIn);
         $('#zoomOut').prop('disabled', DenbZoomOut);
     } else if (message === 'error_list_ready') {
+        if (myId !== id) { return; }
         console.log(`${myDeviceName}:on.server_sends_message:error_list_ready:data:`);
         console.log(data);
         showErrors(data);
@@ -140,11 +145,11 @@ socket.on('server_sends_message', (dataIn) => {
 
 $('#minMaxButton').on('click', () => {
     isMinMaxForMe = true;
-    socket.emit('index_sends_message', {'message': 'get_min_max', 'data': 'NO DATA'});
+    socket.emit('index_sends_message', {'message': 'get_min_max', 'id': myId, 'data': 'NO DATA'});
 });
 
 $('#showErrorsButton').on('click', () => {
-    socket.emit('index_sends_message', {'message': 'request_error_list', 'data': 'NO DATA'});
+    socket.emit('index_sends_message', {'message': 'request_error_list', 'id': myId, 'data': 'NO DATA'});
 })
 
 $('.graphFillToggle').on('click', (cardIn) => {
@@ -192,3 +197,5 @@ const flashIndicator = (elementIdStringIn) => {
     $(elementIdStringIn).fadeIn(500);
     $(elementIdStringIn).fadeOut(1500);
 }
+
+$('#myId').text(`MyId: ${myId}`);
