@@ -6,6 +6,7 @@ const notifier = require('./public/js/notifier');
 const sqlite3 = require('sqlite3');
 const db = require('./public/js/shedDB');
 const io = require('socket.io')(http);
+const exec = require('child_process').exec;
 
 const PORT = 4000;
 const myDeviceName = 'app.js'
@@ -17,6 +18,23 @@ app.use(express.static('node_modules'));
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'public/views/index.html'));
   });
+
+const rebootRPi = () => {
+    exec('shutdown -r now', (error, stdout, stderr) =>{
+        if(error) {
+            console.log(`${myDeviceName}: shutdown(): ERROR: ${error}`);
+        }
+
+        if(stdout) {
+            console.log(`${myDeviceName}: shutdown(): stdout: ${stdout}`);
+        }
+
+        if(stderr) {
+            console.log(`${myDeviceName}: shutdown(): stderr: ${stderr}`);
+        }
+    });
+}
+
 
   // SOCKET STUFF //
   io.on('connect', (socket) => {
@@ -62,9 +80,12 @@ app.get('/', (req,res) => {
     } else if (message === 'get_last_record') {
         notifier.emit('server_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
     } else if (message === 'sensor_malfunction') {
+        // Send message to UI before rebooting...
         io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
-        const errMsg = `${myDeviceName}: Sensor "${data}" is malfunctioning. Program halted. Service required.`;
-        throw new Error(errMsg);
+        // Send message DB before rebooting...
+        notifier.emit('server_sends_message', {'message': 'give_up', 'data': data});
+        // Reboot...
+        rebootRPi();
     } else if (message === 'error') {
         // Bounce out to shedDB (and others, if applicable).
         notifier.emit('server_sends_message', {'message': 'error', 'data': data});
@@ -88,6 +109,9 @@ app.get('/', (req,res) => {
         io.emit('server_sends_message', {'message': 'button_states_ready', 'id': id, 'data': data}); 
     } else if (message === 'error_list_ready') {
         io.emit('server_sends_message', {'message': 'error_list_ready', 'id': id, 'data': data});
+    } else if (message === 'give_up_complete') {
+        // SEND REBOOT COMMAND HERE //
+
     }
   });
 
