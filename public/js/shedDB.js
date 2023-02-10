@@ -237,9 +237,13 @@ notifier.on('server_sends_message', (dataIn) => {
             notifier.emit('shedDB_sends_message', {'message': 'indicator_data_ready', 'data': indicatorData});
             notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
         });
+    } else if (message === 'give_up') {
+        insertErrors(data);
+        notifier.emit('shedDB_sends_message', {'message': 'give_up_complete', 'data': 'NO DATA'});
     } else if (message === 'error') {
         insertErrors(data);
-    } else if (message === 'request_error_list') {
+    }
+    else if (message === 'request_error_list') {
         getAllErrors().then((results) => {
             notifier.emit('shedDB_sends_message', {'message': 'error_list_ready', 'id': id, 'data': results});
         });
