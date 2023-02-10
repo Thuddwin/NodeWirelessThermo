@@ -9,6 +9,8 @@ const myDeviceName = 'shedDB';
 // NOTE: The following data items are in this module because
 //       they 'shape' the data to be retrieved even though they
 //       look like they should be handled elsewhere.
+// EDIT: Move these data items to the Client because this arrangement
+//       very tightly couples all Device's Graph view controls. Very undesirable.
 const DATA_WIDTH_DEFAULT_VALUE = 60;
 let data_width = DATA_WIDTH_DEFAULT_VALUE;
 let index_multiplier = 1; /* How many 'data_widths' into the totalRecords we are. */
