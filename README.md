@@ -11,7 +11,12 @@ This project is made up of 'spare parts' and consists of:
 - [ ] Tablet - In this case, a 10.1" Android 10. But any smart device or computer will work.
 ## Assembly
 ### DS18B20 Assembly
-This app expects to see 3 of the DS18B20 One-wire Temperature Sensors connected together in parallel with a single 4.7 Kohm resistor from the sensor's digital signal pin to +3.3VDC. Connections are: Sensor Power to GPIO +3.3, Sensor Ground to GPIO GND, Sensor Signal to GPIO4.  For clarity, PARALLEL means all of the Temperature Sensors' Powers are soldered together, all of the Temperature Sensors' Grounds are soldered together, and all of the Temperatrure Sensors' Digital Signals are soldered together. The 4.7 Kohm resistor is then solder to the Power bundle and Digital Signal bundle. Each of these 'bundles' are then shrink wrapped to prevents electical shorting.
+This app expects to see 3 of the DS18B20 One-wire Temperature Sensors connected together in parallel with a single 4.7 Kohm resistor from the sensor's digital signal pin to +3.3VDC.<br/>Connections are: 
+- [ ] Sensor Power to GPIO +3.3, 
+- [ ] Sensor Ground to GPIO GND, 
+- [ ] Sensor Signal to GPIO4.
+
+<br/>For clarity, PARALLEL means all of the Temperature Sensors' Powers are soldered together, all of the Temperature Sensors' Grounds are soldered together, and all of the Temperatrure Sensors' Digital Signals are soldered together. The 4.7 Kohm resistor is then solder to the Power bundle and Digital Signal bundle. Each of these 'bundles' are then shrink wrapped to prevents electical shorting.
 ### RPi
 For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and installed from the Raspberry Pi Foundation website.  The headless version is adequate for this project, but any version will work.
 = [ ] Install Node.js and NPM
@@ -21,4 +26,4 @@ For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and
 - [ ] Reboot
 - [ ] cd to NodeWirelessThermo, then start the app by typing: <B><i>cls; node ./app.js</i></b>
 - [ ] Navigate a browser to <b><i>http://<IP ADDRESS OF RASPBERRY PI>:4000</i></b>
-- [ ] More than ove browser can connect.  
+- [ ] More than one browser can connect to Server.  
