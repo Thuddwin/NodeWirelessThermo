@@ -94,10 +94,9 @@ const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
     const recurseCounter = recursesRemaining - 1;
     allTemps2 = getAllTemperatures();
     outsideTemp =   allTemps2[0].t;   // REAL TEMP //
-    pipeTemp =      (--testCounter) ? allTemps2[1].t : null;   // REAL TEMP //
+    pipeTemp =      allTemps2[1].t;   // REAL TEMP //
     shedTemp =      allTemps2[2].t;   // REAL TEMP //
-    console.log(`${myDeviceName}: pumpEngine():getAllTemperatures():result:`);
-    console.log(allTemps2);
+
     // Sometimes a sensor will misfire. Check for null or undefined data. //
     const checkArray = [
         {'name': 'outside', 'temp': outsideTemp},
