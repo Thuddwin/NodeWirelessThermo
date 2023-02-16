@@ -30,8 +30,12 @@ For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and
 ### Le Potato
 Due to availability and skyrocketing price issues with Raspberry Pi, we looked into alternatives and chose the Libre 'Le Potato'.  What we found extremely favorable to this product was the following:
 - [ ] Raspbian OS 11 can be installed using the RPi Imager,
-- [ ] The Wiring Tool makes setting up dtoverlays insanely easy,
-- [ ] Although 'Le Potato' is lacking onboard Wifi, getting Wifi was literally as easy as plugging a CKXW1000 into the USB port and running raspi-config to name the SSID and password.  Absolutely nothing else was required except a reboot.
-- [ ] Other than these steps, everything required to build a RPi is the same to build a Le Potato!
+- [ ] The Wiring Tool makes setting up dtoverlays insanely easy. No need to edit /boot/config.txt like the RPi:
+    - [] sudo apt update
+    - [] sudo apt install libretech-gpio libretech-dtoverlay
+    - [] sudo ldto merge w1-gpio  (This command will ensure the w1-gpio overlay is loaded on every boot)
+    - [] For more on the Wire Tool, see: https://hub.libre.computer/t/libre-computer-wiring-tool/40
+- [ ] Although 'Le Potato' is lacking onboard Wifi, getting Wifi was literally as easy as plugging a CKXW1000 dongle into the USB port and running raspi-config to name the SSID and password.  Absolutely nothing else was required except a reboot.
+- [ ] Other than these steps, everything that is required to build an RPi is the same to build a Le Potato!
 ### RPi and Le Potato
 The Router Address Reservation should be utilized for this app because it is the Server that the Clients will be 'looking' for. We set ours to: 192.168.1.14 because that is the IP Address that is hardcoded in our Android Webview app (allows full screen on Android).
