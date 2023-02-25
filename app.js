@@ -1,4 +1,5 @@
 const express = require('express');
+const Konsole = require('./public/js/djmConsole');
 const app = express();
 const http = require('http').Server(app);
 const path = require('path');
@@ -13,6 +14,8 @@ const myDeviceName = 'app.js'
 const tempSensors = require('./public/js/sensors');
 const tStamp = Date.now();
 
+const k = new Konsole(myDeviceName);
+
 app.use(express.static('public'));
 app.use(express.static('node_modules'));
 app.get('/', (req,res) => {
@@ -20,29 +23,33 @@ app.get('/', (req,res) => {
   });
 
 const rebootRPi = () => {
-    exec('shutdown -r now', (error, stdout, stderr) =>{
-        if(error) {
-            console.log(`${myDeviceName}: shutdown(): ERROR: ${error}`);
-        }
+    const fun = `rebootRPI()`;
+    setTimeout(() => {
+        exec('shutdown -r now', (error, stdout, stderr) =>{
+            if(error) {
+                k.m(fun, `shutdown(): ERROR: ${error}`);
+            }
 
-        if(stdout) {
-            console.log(`${myDeviceName}: shutdown(): stdout: ${stdout}`);
-        }
+            if(stdout) {
+                k.m(fun, `shutdown(): stdout: ${stdout}`);
+            }
 
-        if(stderr) {
-            console.log(`${myDeviceName}: shutdown(): stderr: ${stderr}`);
-        }
-    });
+            if(stderr) {
+                k.m(fun, `shutdown(): stderr: ${stderr}`);
+            }
+        })
+    }, 3000);
 }
 
 
   // SOCKET STUFF //
   io.on('connect', (socket) => {
+    const fun = `io.on.connect`;
     socket.emit('server_sends_message', {'message': 'send_id', 'data':'NO DATA'});
     
     socket.on('index_sends_message', (dataIn) => {
         ({message, id, data} = dataIn)
-        console.log(`${myDeviceName}:on.index_sends_message: id: ${id}`);
+        k.m(fun, `on.index_sends_message: id: ${id}`);
         if (message === 'my_id') {
             if (data === 'index') {
                 notifier.emit('server_sends_message', {'message': 'run_query', 'data': 'NO DATA'});
@@ -79,16 +86,22 @@ const rebootRPi = () => {
     
     } else if (message === 'get_last_record') {
         notifier.emit('server_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
-    } else if (message === 'sensor_malfunction') {
-        // Send message to UI before rebooting...
-        io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
-        // Send message DB before rebooting...
-        notifier.emit('server_sends_message', {'message': 'give_up', 'data': data});
-        // Reboot...
-        rebootRPi();
     } else if (message === 'error') {
-        // Bounce out to shedDB (and others, if applicable).
-        notifier.emit('server_sends_message', {'message': 'error', 'data': data});
+        ({error, sensor_data, time_stamp} = data)
+        // Send message to UI before rebooting...
+        // WAIT: io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
+        // Send message DB before rebooting...
+        if (error === 'give_up') {
+            // REPLACE NULLs with -500;
+            data.sensor_data.forEach(element => {
+                if( element.temp === 'NULL') {
+                    element.temp = -500;
+                }
+            });
+            notifier.emit('server_sends_message', {'message': 'give_up', 'data': data});
+        } else if (['nullUndef', 'xsvDelta'].includes(error)) {
+            notifier.emit('server_sends_message', {'message': 'error', 'data': data});
+        }
     }
   });
 
@@ -110,12 +123,14 @@ const rebootRPi = () => {
     } else if (message === 'error_list_ready') {
         io.emit('server_sends_message', {'message': 'error_list_ready', 'id': id, 'data': data});
     } else if (message === 'give_up_complete') {
+        // SEND LAST GASP ERROR LIST TO UI //
+        io.emit('server_sends_message', {'message': 'error_list_ready', 'id': id, 'data': data});
         // SEND REBOOT COMMAND HERE //
-
+        rebootRPi(); 
     }
   });
 
 
     http.listen(PORT, () => {
-    console.log(`Betty's Wireless Temperature Monitor listening on port: ${PORT}.`);
+    k.m(``, `Betty's Wireless Temperature Monitor listening on port: ${PORT}.`);
   })

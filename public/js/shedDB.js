@@ -1,10 +1,11 @@
 const path = require('path');
 const notifier = require('../js/notifier');
-
+const Konsole = require('./djmConsole');
 const dbPath = path.join(__dirname, '../database/temps.db');
 const shedDB = require('better-sqlite3')(dbPath);
 
 const myDeviceName = 'shedDB';
+const k = new Konsole(myDeviceName);
 
 // NOTE: The following data items are in this module because
 //       they 'shape' the data to be retrieved even though they
@@ -24,6 +25,8 @@ const MAX_LIMIT = 200;
 const MIN_LIMIT = 10;
 
 const buildTimeAxis = (timeAxisIn) => {
+    const fun = `buildTimeAxis()`;
+    k.m(fun, '...')
     let lastDate = 'EMPTY STRING';
     let timeArray = [];
     timeAxisIn.forEach(tObj => {
@@ -66,14 +69,17 @@ const createTables = () => {
 }
 
 const insertData = (dataIn) => {
+    const fun =`insertData()`;
+    k.m(fun, `insertData(): dataIn:`);
+    k.m(fun, dataIn);
     ({ time_stamp, outside, pipe, shed } = dataIn);
     ({ date_obj } = time_stamp);
     if ( !(outside && pipe && shed) ) {
-        console.log(`${myDeviceName}: insertData(): ERROR: NULL or UNDEFINED data attempted insert into temp_samples. Ignoring.`);
-        console.log(`${myDeviceName}: >>>> outside: ${outside.temp}`);
-        console.log(`${myDeviceName}: >>>> pipe: ${pipe.temp}`);
-        console.log(`${myDeviceName}: >>>> shed: ${shed.temp}`);
-        
+        k.m(fun, `insertData(): ERROR: NULL or UNDEFINED data attempted insert into temp_samples. Ignoring.`);
+        k.m(fun, `>>>> outside: ${outside.temp}`);
+        k.m(fun, `>>>> pipe: ${pipe.temp}`);
+        k.m(fun, `>>>> shed: ${shed.temp}`);
+
         return;
     }
 
@@ -90,8 +96,8 @@ const insertData = (dataIn) => {
 
 const insertErrors = (dataIn) => {
     ({error, sensor_data, time_stamp} = dataIn)
-    console.log(`${myDeviceName}: insertErrors(): dataIn:`);
-    console.log(dataIn);
+    k.m(fun, `insertErrors(): dataIn:`);
+    k.m(fun, dataIn);
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO errors (error_type, outside_temp, pipe_temp, shed_temp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
     insertIntoTableCmd.run(error, sensor_data[0].temp, sensor_data[1].temp, sensor_data[2].temp, time_stamp);
 }
@@ -164,6 +170,7 @@ const initDB = async () => {
 
 notifier.on('server_sends_message', (dataIn) => {
     ({ message, id, data } = dataIn);
+    const fun = `on.server_sends_message`;
     if( message == 'add_temp_samples') {
         insertData(data);
     } else if (message === 'run_query') {
@@ -238,8 +245,17 @@ notifier.on('server_sends_message', (dataIn) => {
             notifier.emit('shedDB_sends_message', {'message': 'button_states_ready', 'data': buttonStates});
         });
     } else if (message === 'give_up') {
+        k.m(fun, `message === "give_up": Inserting errors.`);
         insertErrors(data);
-        notifier.emit('shedDB_sends_message', {'message': 'give_up_complete', 'data': 'NO DATA'});
+        k.m(fun, `message === "give_up": getting all errors...`);
+        getAllErrors().then((results) => {
+            k.m(fun, `message === "give_up": All errors received. Now waiting 3 seconds to send "give_up_complete"...`);
+            setTimeout(() => {
+                k.m(`message === "give_up": 3 seconds elapsed. Now sending "give_up_complete" with all errors data.`);
+                notifier.emit('shedDB_sends_message', {'message': 'give_up_complete', 'id': id, 'data': results});
+            })
+        }, 3000);
+
     } else if (message === 'error') {
         insertErrors(data);
     }

@@ -12,32 +12,57 @@
  */
 const notifier = require('./notifier');
 const ds18b20 = require('ds18b20-raspi');
-const { ERROR } = require('sqlite3');
+const Konsole = require('./djmConsole');
+
 const myDeviceName = 'sensors';
+const k = new Konsole(myDeviceName);
 
-console.log(`${myDeviceName}: loading....`);
+k.m('global area', `loading....`);
 
+let initializing = null;
 const intervalSeconds = 30;
 const PUMP_INTERVAL = intervalSeconds * 1000;
 const DELTA_THRESHOLD = 0.5;
 const NO_DATA = {};
-const RECURSE_MAX = 3;
-let sensor_malfunction = false;
-let isMisfiredObj = {};
+const KEEPTRYING_MAX = 3;
+let tempPackage = {
+    'time_stamp': {'date_obj': {}},
+    'temps': [
+        {'name': 'outside', 'temp': null},
+        {'name': 'pipe', 'temp': null},
+        {'name': 'shed', 'temp': null},
+    ]
+};
+// No need to define lastMeasurements innards because it will
+// be a javascript structuredClone() of tempPackage eventually.
+let lastMeasurements = {};
+
+let returnResult = {
+    'isMisfired': '',
+    'errorType': '',
+    'name': '',
+    'dataSet': []
+}
+
+let errorPkg = {
+    'error': '',
+    'sensor_data': [],
+    'time_stamp': ''
+};
 
 notifier.on('connect', () => {
-    console.log(`${myDeviceName}: Sensors connected to Server Notifier.`);
+    const fun = `on.connect`
+    k.m(fun, `Sensors connected to Server Notifier.`);
 });
 
 notifier.on('server_sends_message', (dataIn) => {
     ({message, data} = dataIn)
     if (message === 'hit_pump_once') {
-        pumpEngine(NO_DATA, RECURSE_MAX, true)
+        pumpEngineWrapper(true)
     } else if (message === 'last_record_ready') {
-        pumpEngine(data, RECURSE_MAX, false);
+        pumpEngineWrapper(false);
     }
 });
-
 
 let getAllTemperatures = () => {
     const allTemps = ds18b20.readAllF(2);
@@ -58,119 +83,169 @@ const buildTimeStamp = () => {
 }
 
 /**
- * checkForNullUndefined()
- * @param {*} arrayIn 
- * @returns Object: name: name of failing sensor, result: true: is null or undefine.
+ * checkForNullUndefinedInvalidDelta() - If this functions returns a true, then downstream
+ * should prevent the data from being insterted into the database (which will cause a crash).
+ * @param {*} tempPackage
+ * @global lastMeasurements[{outside}, {pipe}, {shed}]
+ * @returns Object: name: name of failing sensor, result: true: is null/undefined/xsvDelta.
  */
-let checkForNullUndefined = (arrayIn) => {
-    let result = false;
-    let failName = '';
-    
-    for (let i=0; i<arrayIn.length; i++ ) {
-        if (arrayIn[i].temp === null || arrayIn[i].temp === 'undefined') {
-            result = true;
-            failName = arrayIn[i].name;
-            arrayIn[i].temp = 'NULL'
-        } 
-    };
+let checkForNullUndefinedInvalidDelta = () => {
+    ({time_stamp, temps} = tempPackage)
+    const fun = `checkForNullUndefinedInvalidDelta()`;
+    k.m(fun, `tempPackage:`);
+    k.m(fun, tempPackage);
+    k.m(fun, `lastMeasurements:`);
+    k.m(fun, lastMeasurements);
+    returnResult.isMisfired = false;
+    returnResult.errorType = '';
+    returnResult.failName = '';
+    returnResult.dataSet = [];
 
-    const returnResult = {
-        'result': result,
-        'name': failName || '',
-        'data_set': arrayIn
+    k.m(fun, `First forEach loop to find nullUndef...`);
+    k.m(fun, temps);
+    temps.forEach(obj => {
+        if(obj.temp === null || obj.temp === 'undefined') {
+            returnResult.isMisfired = true;
+            returnResult.failName = obj.name;
+            obj.temp = 'NULL';
+            returnResult.errorType = 'nullUndef';
+        }
+    });
+
+    // IF NO NULLs OR UNDEFINEDs, THEN CHECK FOR INVALID DELTAs. //
+    k.m(fun, `CHECK FOR XSV DELTA? ${(returnResult.isMisfired ? 'No' : 'Yes')}`);
+    k.m(fun, `lastMeasurements array(?): <<<<<<<<<<<<<<<<<<<<<<`);
+    console.log(lastMeasurements);
+    k.m(fun, `lastMeasurements array(?): >>>>>>>>>>>>>>>>>>>>>`);
+    k.m(fun, lastMeasurements);
+    if (!returnResult.isMisfired) {
+        temps.forEach((objOut, index) => {
+            k.m(fun, objOut)
+            let lmVal = lastMeasurements.temps[index].temp;
+            k.m(fun, `Check...: element: ${objOut}, lastMeasurements[${index}]: ${lmVal}`)
+            if (Math.abs(objOut - lmVal) > 1.0) {
+                returnResult.isMisfired = true;
+                returnResult.errorType = 'xsvDelta';
+            }
+        });
+    }
+
+    returnResult.dataSet = temps;
+    returnResult.time_stamp = time_stamp;
+    if(!returnResult.isMisfired) {
+        lastMeasurements = structuredClone(tempPackage);
+        k.m(fun, `DataSet GOOD! No Null/Undef/XSV Delta.`);
     }
 
     return returnResult;
 }
-
-// NOTE: Moving temp declaraions outside the pumpEngine so old values will
-//       not be popped when exiting a level of recurse.
-let outsideTemp = null;
-let pipeTemp = null;
-let shedTemp = null;
-let allTemps2 = [];
-let testCounter = 5;
-const pumpEngine = (lastRecordIn, recursesRemaining, initializing) => {
-    const recurseCounter = recursesRemaining - 1;
-    allTemps2 = getAllTemperatures();
-    outsideTemp =   allTemps2[0].t;   // REAL TEMP //
-    pipeTemp =      allTemps2[1].t;   // REAL TEMP //
-    shedTemp =      allTemps2[2].t;   // REAL TEMP //
-
-    // Sometimes a sensor will misfire. Check for null or undefined data. //
-    const checkArray = [
-        {'name': 'outside', 'temp': outsideTemp},
-        {'name': 'pipe', 'temp': pipeTemp},
-        {'name': 'shed', 'temp': shedTemp},
-    ]
-    
-    isMisfiredObj = checkForNullUndefined(checkArray);
-    isMisfired = isMisfiredObj.result;
-    const date = new Date().toLocaleDateString();
-    const time = new Date().toLocaleTimeString();
-    let error_package  = {
-        'error': '',
-        'sensor_data': checkArray,
-        'time_stamp': `${date}-${time}`
+/**
+ * checkThreshold() - Uses globals tempPackage and lastMeasurements.
+ * @returns 
+ */
+let checkThreshold = () => {
+      // If this is first pass after power on then ignore the check because it will get stuck and
+      // not update the UI.
+      if (initializing) {
+        lastMeasurements = structuredClone(tempPackage)
+        return true;
     }
-
-    if (isMisfired && (recurseCounter >= 1)) {
-        console.log(`${myDeviceName}: pumpEngine(): READINGS: outside: ${outsideTemp}, pipe: ${pipeTemp}, shed:${shedTemp}`)
-        console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Trying again....`);
-        error_package.error = 'misfire';
-        notifier.emit('sensors_sends_message', {'message': 'error', 'data': error_package})
-        // RECURSE...
-        pumpEngine(lastRecordIn, recurseCounter, initializing);
-    } else if (isMisfired && !recurseCounter) {
-        // Give up. It has been RECURSE_MAX attempts. A sensor, or sensors, is malfunctioning.
-        // Message to server will be sent at the end of this module.  The server will decide what 
-        // to do.
-        console.log(`${myDeviceName}: pumpEngine(): ERROR: A sensor misfired. Ignoring this sample.`);
-        error_package.error = 'give_up';
-        notifier.emit('sensors_sends_mesaage', {'message': 'error', 'data': error_package})
-        sensor_malfunction = true;
-    }
-
-    // Reduce data storage: Check to see if any sensor value meets the minimum delta threshold. //
-    // Logic evaluates to TRUE if the threshold is met.
-    const lrOutside = Math.abs(lastRecordIn.outside_temp - outsideTemp) >= DELTA_THRESHOLD;
-    const lrPipe = Math.abs(lastRecordIn.pipe_temp - pipeTemp) >= DELTA_THRESHOLD;
-    const lrShed = Math.abs(lastRecordIn.shed_temp - shedTemp) >= DELTA_THRESHOLD;
+    const fun = `checkThreshold()`;
+    k.m(fun, 'FIRST THING...');
+    k.m(fun, lastMeasurements);
+    k.m(fun, tempPackage);
+    const lrOutside =    Math.abs(lastMeasurements.temps[0] - tempPackage.temps[0]) >= DELTA_THRESHOLD;
+    const lrPipe =       Math.abs(lastMeasurements.temps[1] - tempPackage.temps[1]) >= DELTA_THRESHOLD;
+    const lrShed =       Math.abs(lastMeasurements.temps[2] - tempPackage.temps[2]) >= DELTA_THRESHOLD;
+    k.m(fun, `lrOutside: ${lrOutside}, lrPipe: ${lrPipe}, lrShed: ${lrShed}`);
+    k.m(fun, `initializing: ${initializing}`);
     
-    // If this is first pass after power on, then ignore because we want to update the UI.
-    if (!initializing) {
-        if ( !(lrOutside || lrPipe || lrShed) ) {
+    return (lrOutside || lrPipe || lrShed);
+}
 
-            // None of the sensors' data has met the minimum threshold of +/-0.5 deg F so ignore. //
+/**
+ *  pumpEngine() - Fetches sensore readings from the hardware and attaches a timestamp.
+ *  @returns tempPackage object
+ */
+ let testCounter = 3;
+ let pumpEngine = () => { 
+     const fun = `pumpEngine()`
+     const currentTimeStamp = buildTimeStamp();
+     tempPackage.time_stamp.date_obj = currentTimeStamp;
+ 
+     // Data flow starts HERE.... //
+     const allTemps2 = getAllTemperatures();
+     tempPackage.temps[0].temp = allTemps2[0].t;  // REAL TEMP //
+     tempPackage.temps[1].temp = ((--testCounter < 0) ? null : allTemps2[1].t);   // REAL TEMP //
+     tempPackage.temps[2].temp = allTemps2[2].t;  // REAL TEMP //
+     k.m(fun, `pumpEngine(): tempPackage:`);
+     k.m(fun, tempPackage);
+     return tempPackage;
+ }
 
+const pumpEngineWrapper = (initIn) => {
+    initializing = initIn;
+    const fun = `pumpEngingWrapper()`;
+    let giveUpCounter = KEEPTRYING_MAX;
+    do {
+        tempPackage = pumpEngine();
+        const isThresholdPassed = checkThreshold(tempPackage);
+        if(!isThresholdPassed) { 
+            k.m(fun, `No thresholds met, IGNORING data.`)    
             return;
         }
-    }
 
-    const currentTimeStamp = buildTimeStamp();
+        let isMisfiredObj = checkForNullUndefinedInvalidDelta();
+        ({isMisfired, errorType, faileName, dataSet} = isMisfiredObj);
+        ({time_stamp,} = dataSet);
+        
+        if(isMisfired) {
+            errorPkg.error = errorType;
+            errorPkg.sensor_data = dataSet;
+            errorPkg.time_stamp = `${time_stamp.date}-${time_stamp.time}`;
+            k.m(fun, `pumpEngineWrapper(): isMisfired: ${isMisfired}, errorPkg`);
+            k.m(fun, errorPkg);
+            notifier.emit('sensors_sends_message', {'message': 'error', 'data': errorPkg})
+        }
+        
+        if (!isMisfired) {
+            lastMeasurements = structuredClone(tempPackage);
+        }
 
-    const tempPackage = {
-        'time_stamp': {'date_obj': currentTimeStamp},
-        'outside': {'name': 'outside', 'temp': outsideTemp},
-        'pipe': {'name': 'pipe', 'temp': pipeTemp},
-        'shed': {'name': 'shed', 'temp': shedTemp},
-    }
+        k.m(fun, `pumpEngineWrapper(): isMisfired: ${isMisfired}, giveUpCounter: ${giveUpCounter}`);
+    } while(isMisfired && giveUpCounter);
 
-    if (!sensor_malfunction) {
-        notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': tempPackage});
+    k.m(fun, `pumpEngineWrapper(): out of DO LOOP...`);
+    // STILL MISFIRING, GIVEUPCOUNTER EXPIRED, SO GIVEUP //
+    if(isMisfired && (giveUpCounter <= 0)) {
+        k.m(fun, `pumpEngineWrapper(): Giving up.`);
+        errorPkg.error = 'give_up';
+        notifier.emit('sensors_sends_mesaage', {'message': 'give_up', 'data': error_package})
+        sensor_malfunction = true;
     } else {
-        // Have Server throw error. //
-        notifier.emit('sensors_sends_message', {'message': 'sensor_malfunction', 'data': isMisfiredObj.name});
-        sensor_malfunction = false;
+        k.m(fun, `pumpEngineWrapper(): Data good, send "temp_update" message...`);
+        // TODO: FIX this hack where data is repackaged for DB. //
+        const dbPackage = {
+            time_stamp: tempPackage.time_stamp,
+            'outside': {'temp': tempPackage.temps[0].temp},
+            'pipe': {'temp': tempPackage.temps[1].temp},
+            'shed': {'temp': tempPackage.temps[2].temp},
+        }
+        notifier.emit('sensors_sends_message', {'message': 'temp_update', 'data': dbPackage});
     }
 }
 
-const sensorsReadPump = () => {
-    console.log(`${myDeviceName}: Starting sensorScanPump()`);
+/**
+ * scanSensorsPump - An interval of PUMP_INTERVAL that sends a message to the Server to let 
+ * the system know that the sensors are being scanned.
+ */
+const scanSensorsPump = () => {
+    const fun = `scanSensorPump()`;
+    k.m(fun, `Starting sensorScanPump()`);
     const pumpId = setInterval(() => {
         notifier.emit('sensors_sends_message', {'message': 'sampling_start', 'data': 'NO DATA'});
         notifier.emit('sensors_sends_message', {'message': 'get_last_record', 'data': 'NO DATA'});
     }, PUMP_INTERVAL);
 }
 
-sensorsReadPump();
+scanSensorsPump();
