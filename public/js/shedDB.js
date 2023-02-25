@@ -96,10 +96,11 @@ const insertData = (dataIn) => {
 
 const insertErrors = (dataIn) => {
     ({error, sensor_data, time_stamp} = dataIn)
-    k.m(fun, `insertErrors(): dataIn:`);
+    const fun = 'insertErrors()';
+    k.m(fun, `dataIn:`);
     k.m(fun, dataIn);
     const insertIntoTableCmd = shedDB.prepare(`INSERT INTO errors (error_type, outside_temp, pipe_temp, shed_temp, time_stamp) VALUES(?, ?, ?, ?, ?);`);
-    insertIntoTableCmd.run(error, sensor_data[0].temp, sensor_data[1].temp, sensor_data[2].temp, time_stamp);
+    insertIntoTableCmd.run(error, sensor_data.outside.temp, sensor_data.pipe.temp, sensor_data.shed.temp, time_stamp);
 }
 
 const runQuery = async () => {
@@ -250,12 +251,9 @@ notifier.on('server_sends_message', (dataIn) => {
         k.m(fun, `message === "give_up": getting all errors...`);
         getAllErrors().then((results) => {
             k.m(fun, `message === "give_up": All errors received. Now waiting 3 seconds to send "give_up_complete"...`);
-            setTimeout(() => {
-                k.m(`message === "give_up": 3 seconds elapsed. Now sending "give_up_complete" with all errors data.`);
-                notifier.emit('shedDB_sends_message', {'message': 'give_up_complete', 'id': id, 'data': results});
-            })
-        }, 3000);
-
+            k.m(`message === "give_up": 3 seconds elapsed. Now sending "give_up_complete" with all errors data.`);
+            notifier.emit('shedDB_sends_message', {'message': 'give_up_complete', 'id': id, 'data': results});
+        });
     } else if (message === 'error') {
         insertErrors(data);
     }

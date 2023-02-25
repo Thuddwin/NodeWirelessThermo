@@ -7,7 +7,7 @@ const notifier = require('./public/js/notifier');
 const sqlite3 = require('sqlite3');
 const db = require('./public/js/shedDB');
 const io = require('socket.io')(http);
-const exec = require('child_process').exec;
+const rbt = require('./public/js/rebooter');
 
 const PORT = 4000;
 const myDeviceName = 'app.js'
@@ -16,31 +16,13 @@ const tStamp = Date.now();
 
 const k = new Konsole(myDeviceName);
 
+console.clear();
+
 app.use(express.static('public'));
 app.use(express.static('node_modules'));
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname, 'public/views/index.html'));
   });
-
-const rebootRPi = () => {
-    const fun = `rebootRPI()`;
-    setTimeout(() => {
-        exec('shutdown -r now', (error, stdout, stderr) =>{
-            if(error) {
-                k.m(fun, `shutdown(): ERROR: ${error}`);
-            }
-
-            if(stdout) {
-                k.m(fun, `shutdown(): stdout: ${stdout}`);
-            }
-
-            if(stderr) {
-                k.m(fun, `shutdown(): stderr: ${stderr}`);
-            }
-        })
-    }, 3000);
-}
-
 
   // SOCKET STUFF //
   io.on('connect', (socket) => {
@@ -71,6 +53,7 @@ const rebootRPi = () => {
   // NOTIFIER STUFF //
   // SENSOR SENT //
   notifier.on('sensors_sends_message', (dataIn) => {
+    const fun = 'sensors_sends_message';
     ({ message, data } = dataIn);
     if(message === 'temp_update') {
         /* Bounce message for shedDB to ADD CURRENT SAMPLE ONLY. shedDB will send
@@ -91,23 +74,27 @@ const rebootRPi = () => {
         // Send message to UI before rebooting...
         // WAIT: io.emit('server_sends_message', {'message': 'sensor_malfunction', 'data': data});
         // Send message DB before rebooting...
-        if (error === 'give_up') {
-            // REPLACE NULLs with -500;
-            data.sensor_data.forEach(element => {
-                if( element.temp === 'NULL') {
-                    element.temp = -500;
-                }
-            });
-            notifier.emit('server_sends_message', {'message': 'give_up', 'data': data});
-        } else if (['nullUndef', 'xsvDelta'].includes(error)) {
+        if (['nullUndef', 'xsvDelta'].includes(error)) {
             notifier.emit('server_sends_message', {'message': 'error', 'data': data});
         }
-    }
+    } else if (message === 'give_up') {
+        // REPLACE NULLs with -500; TODO: <-- WHY NOT -500 IN FIRST PLACE????
+        let o = data.sensor_data.outside.temp;
+        let p = data.sensor_data.pipe.temp;
+        let s = data.sensor_data.shed.temp;
+        o = (o === 'NULL' ? -500 : o);
+        p = (p === 'NULL' ? -500 : p);
+        s = (s === 'NULL' ? -500 : s);
+        // Tell shedDB to save error...
+        k.m(fun, `Sending give_up message...`)
+        notifier.emit('server_sends_message', {'message': 'give_up', 'data': data});
+    } 
   });
 
   // SHEDDB SENT //
   notifier.on('shedDB_sends_message', (dataIn) => {
     ({ message, id, data } = dataIn)
+    const fun = `shedDB_sends_message`;
     if(message === 'temp_samples_ready') {
         // Bounce the message and data.  Target recipient(s): index.html //
         io.emit('server_sends_message', {'message': 'temp_samples_ready', 'id': id, 'data': data});
@@ -125,8 +112,9 @@ const rebootRPi = () => {
     } else if (message === 'give_up_complete') {
         // SEND LAST GASP ERROR LIST TO UI //
         io.emit('server_sends_message', {'message': 'error_list_ready', 'id': id, 'data': data});
+        k.m(fun, `SENDING REBOOT NOW>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>`);
         // SEND REBOOT COMMAND HERE //
-        rebootRPi(); 
+        rbt.rebootRPi(); 
     }
   });
 
