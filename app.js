@@ -79,6 +79,8 @@ app.get('/', (req,res) => {
         }
     } else if (message === 'give_up') {
         // REPLACE NULLs with -500; TODO: <-- WHY NOT -500 IN FIRST PLACE????
+        k.m(fun, `This is data that was sent from sensors at 'give_up.`);
+        console.log(data);
         let o = data.sensor_data.outside.temp;
         let p = data.sensor_data.pipe.temp;
         let s = data.sensor_data.shed.temp;

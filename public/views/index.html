@@ -116,14 +116,20 @@
                                 <h1>Betty's Thermo Monitor</h1>
                             </div>
                             <div class="col-1 align-items-center d-flex">
-                                <button class="btn btn-success rounded btn-sm" id="samplingIndicator">
+                                <button class="btn btn-success rounded btn-sm" id="sampleInd">
                                     Sampling...
                                 </button>
                             </div>
-                            <div class="col-1 align-items-center d-flex">
-                                <button class="btn btn-primary rounded btn-sm" id="updatingIndicator">
+                            <div class="col-1 d-flex justify-content-center m-2" style="display: flex; flex-direction: column;">
+                                <!-- <button class="btn btn-primary rounded btn-sm" id="updatingIndicator">
                                     Updating...
-                                </button>
+                                </button> -->
+                                <div class="row" style="font-size: 10px;;" id="cardInd">
+                                    <div class="col text-white" style="background-color: #0d6efd">Updating Cards</div>
+                                </div>
+                                <div class="row" style="font-size: 10px;" id="chartInd">
+                                    <div class="col text-white" style="background-color: #0d6efd">Updating Chart</div>
+                                </div>
                             </div>
                             <div class="col h-100 d-flex align-items-center flex-column justify-content-center">
                                 <h4 class="name" id="titleDate">----</h4>

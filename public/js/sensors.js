@@ -136,6 +136,8 @@ let checkForNullUndefinedInvalidDelta = () => {
  */
 let checkThreshold = () => {
     const fun = `checkThreshold()`;
+    k.m(fun, `This is lastMeasurements obj:`);
+    console.log(lastMeasurements);
       // If this is first pass after power on then ignore the check because it will get stuck and
       // not update the UI.
       if (initializing) {
@@ -165,7 +167,7 @@ let checkThreshold = () => {
  */
  let pumpEngine = () => { 
      const fun = `pumpEngine()`
-     const currentTimeStamp = buildTimeStamp(false);
+     const currentTimeStamp = buildTimeStamp(false); 
  
      // Data flow starts HERE.... //
      const allTemps2 = getAllTemperatures();
@@ -214,7 +216,7 @@ const pumpEngineWrapper = (initIn) => {
 
         k.m(fun, `pumpEngineWrapper(): isMisfired: ${isMisfired}, giveUpCounter: ${giveUpCounter}`);
         giveUpCounter--;
-    } while(giveUpCounter);
+    } while(isMisfired && giveUpCounter);
 
     k.m(fun, `pumpEngineWrapper(): out of DO LOOP..., giveUpCounter: ${giveUpCounter}`);
     // STILL MISFIRING, GIVEUPCOUNTER EXPIRED, SO GIVEUP //

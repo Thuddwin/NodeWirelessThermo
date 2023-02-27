@@ -3,8 +3,9 @@ const myId = Math.round((Math.random() * 10000) + 100);
 console.log(`${myDeviceName}:${myId}`);
 const socket = io();
 
-const SAMPLE_INDICATOR ='#samplingIndicator';
-const UPDATE_INDICATOR = '#updatingIndicator';
+const SAMPLE_INDICATOR ='#sampleInd';
+const CARD_INDICATOR = '#cardInd';
+const CHART_INDICATOR = '#chartInd';
 const ERROR_MODAL = '#errorModal';
 
 // When changing label names, change these only. //
@@ -56,10 +57,10 @@ socket.on('server_sends_message', (dataIn) => {
     ({ message, id, data } = dataIn);
     if(message === 'temp_update') {
         /* Card and Timestamp single data points only coming directly from 
-        the Sensor Module after crossing 5 degree threshold.
+        the Sensor Module after crossing 0.5 degree threshold.
         Does NOT update the Graph. Is NOT array data. */
-        
-        flashIndicator(UPDATE_INDICATOR);
+        console.log(`Updating only cards....`);
+        flashCardIndicator();
         ({ time_stamp, outside, pipe, shed } = data);
         ({ date_obj } = time_stamp);
         $('#titleDate').text(date_obj.date);
@@ -71,7 +72,9 @@ socket.on('server_sends_message', (dataIn) => {
         // SHED
         $('#shedCurrentElem').text(`${shed.temp}`);
     } else if (message === 'temp_samples_ready') {
-        flashIndicator(UPDATE_INDICATOR);
+        /* Is array data only. */
+        console.log('Updating graph only...');
+        flashChartIndicator();
         ({ time_stamp, outside, pipe, shed, sample_count } = data)
         $('#titleSample').text(`Total Samples: ${sample_count}`);
 
@@ -102,13 +105,7 @@ socket.on('server_sends_message', (dataIn) => {
     } else if (message === 'send_id') {
         socket.emit('index_sends_message', {'message': 'my_id', 'id': myId, 'data': myDeviceName});
     } else if (message === 'sampling_start') {
-        flashIndicator(SAMPLE_INDICATOR);
-    } else if (message === 'sensor_malfunction') {
-        // if (myId !== id) { return; }
-        // POP DIALOG HERE AFTER ELEMENTS POPULATED WITH INCOMING DATA //
-        $('#errorMessage').text(`"${data}" sensor is malfunctioning.`);
-        let errorModal = new bootstrap.Modal(document.getElementById("errorModal"), {});
-        errorModal.show();
+        flashSampleIndicator();
     } else if (message === 'indicator_data_ready') {
         ({totalRecords, startIndex, dataWidth, buttonStates} = data)
         const progOuterWidth = $('#progOuter').width();
@@ -193,9 +190,17 @@ const showErrors = (dataIn) => {
 
 }
 
-const flashIndicator = (elementIdStringIn) => {
-    $(elementIdStringIn).fadeIn(500);
-    $(elementIdStringIn).fadeOut(1500);
+const flashSampleIndicator = () => {
+    $(SAMPLE_INDICATOR).fadeIn(300);
+    $(SAMPLE_INDICATOR).fadeOut(1000);
+}
+const flashCardIndicator = () => {
+    $(CARD_INDICATOR).fadeIn(300);
+    $(CARD_INDICATOR).fadeOut(1000);
+}
+const flashChartIndicator = () => {
+    $(CHART_INDICATOR).fadeIn(300);
+    $(CHART_INDICATOR).fadeOut(1000);
 }
 
 $('#myId').text(`MyId: ${myId}`);
