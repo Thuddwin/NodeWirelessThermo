@@ -138,6 +138,10 @@ let checkThreshold = () => {
     const fun = `checkThreshold()`;
     k.m(fun, `This is lastMeasurements obj:`);
     console.log(lastMeasurements);
+    k.m(fun, `This is tempPackage obj:`);
+    console.log(tempPackage);
+    k.m(fun, `This is initialzing flag: ${initializing}`);
+
       // If this is first pass after power on then ignore the check because it will get stuck and
       // not update the UI.
       if (initializing) {
