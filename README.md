@@ -19,7 +19,7 @@ This app expects to see 3 of the DS18B20 One-wire Temperature Sensors connected 
 <br/>For clarity, PARALLEL means all of the Temperature Sensors' Powers are soldered together, all of the Temperature Sensors' Grounds are soldered together, and all of the Temperatrure Sensors' Digital Signals are soldered together. The 4.7 Kohm resistor is then solder to the Power bundle and Digital Signal bundle. Each of these 'bundles' are then shrink wrapped to prevents electical shorting.
 ### RPi
 For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and installed from the Raspberry Pi Foundation website.  The headless version is adequate for this project, but any version will work.
-= [ ] Install Node.js and NPM
+- [ ] Install Node.js and NPM
 - [ ] GIT should already be installed with the OS.  If not, apt-get it.
 - [ ] From /home/pi <b><i>git clone https://github.com/Thuddwin/NodeWirelessThermo.git</i></b>
 - [ ] Edit the /boot/config.text file, add to the end of the file: <b><i>dtoverlay=w1-gpio</i></b>
