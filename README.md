@@ -1,4 +1,9 @@
-# NodeWirelessThermo
+# NodeWirelessThermo Client-side
+#### The Client-side app is an Android webView 'shell' that navigates to 'http://192.168.1.14:4000' (hardcoded for now) on your LAN. 'http://192.168.1.14:4000' is the URL for the Raspberry Pi Server-side app referred to below.
+Client-side will need to be sideloaded by directing the Client's Google Drive (Android Tablet) to: 
+- [ ] Google Drive: https://drive.google.com/file/d/1lohE3BEQX0l24mukBM-InSNnZzLhInhF/view?usp=sharing
+- [ ] Follow the Android Tablet's prompting to install the Client-side app and run after the Server-side app on the Raspberry Pi is setup and running.
+# NodeWirelessThermo Server-side
 
 This is a simple implementation of a Temperature Monitor using Raspberry Pi, Node, Express and 3 DS18B20AB One-wire temperature sensors that are packaged in waterproof 3-wire cable.  The sensors attach to the RPi GPIO.
 The UI shows the current, high, and low temperatures for Outside, Pipe, and Inside temperatures. The environment (in this case) is an uninsulated shed-like attachment to an apartment that houses a freezer, some storage, and a water pipe that eventually exits to an external faucet.  In the winter, the pipe has frozen and cracked. To prevent that from happening again, an effecient electric heater was installed (its switch set to always ON) and is connected to a Grainger Thermo Switch that is ON when it senses its ambient temperature in the 35F to 45F range.
