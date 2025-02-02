@@ -29,7 +29,9 @@ For simplicity, we are using the Raspbian OS (Bullseye) that can be obtained and
 - [ ] From /home/pi <b><i>git clone https://github.com/Thuddwin/NodeWirelessThermo.git</i></b>
 - [ ] Edit the /boot/config.text file, add to the end of the file: <b><i>dtoverlay=w1-gpio</i></b>
 - [ ] Reboot
-- [ ] cd to NodeWirelessThermo, then start the app by typing: <B><i>cls; node ./app.js</i></b>
+- [ ] (See RPi and Le Potato below for address reservation)
+- [ ] cd to NodeWirelessThermo, install the node modules by typing: <b><i> npm install</i></b>
+- [ ] After the modules are installed, start the app by typing: <B><i>cls; node ./app.js</i></b>
 - [ ] Navigate a browser to <b><i>http://\<IP ADDRESS OF RASPBERRY PI\>:4000</i></b>
 - [ ] More than one browser can connect to Server.  
 ### Le Potato
